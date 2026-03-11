@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #sidebar {
+            transition: width 0.3s ease, min-width 0.3s ease;
+            overflow: hidden;
+            min-width: 16rem;
+        }
+        #sidebar.collapsed {
+            width: 0 !important;
+            min-width: 0 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <aside id="sidebar" class="w-64 bg-gray-800 text-white flex flex-col">
+            <div class="p-6 border-b border-gray-700">
+                <h1 class="text-2xl font-bold">Admin Panel</h1>
+            </div>
+            <nav class="flex-1 p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="/admin-panel/dashboard/" class="flex items-center gap-3 px-4 py-3 rounded-3xl bg-gray-700 text-white font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin-panel/categories/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                            </svg>
+                            Categories
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin-panel/tags/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            Tags
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin-panel/countries/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 004 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Countries
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin-panel/states/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            States
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin-panel/cities/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            Cities
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="p-4 border-t border-gray-700">
+                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-red-600 text-gray-300 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto">
+            <header class="bg-white shadow-sm">
+                <div class="px-8 py-6 flex items-center gap-4">
+                    <button id="sidebarToggleBtn" onclick="toggleSidebar()" class="p-2 rounded-3xl hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition" title="Toggle sidebar">
+                        <svg id="toggleIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <h2 class="text-2xl font-bold text-gray-900">Events Dashboard</h2>
+                </div>
+            </header>
+
+            <div class="p-8">
+                <div id="successMessage" class="hidden mb-6 p-4 bg-green-50 border border-green-200 rounded-3xl text-green-800"></div>
+                <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-3xl text-red-800"></div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <a href = "/admin-panel/dashboard/" class="bg-white rounded-3xl shadow p-6 hover:scale-105 transition-transform duration-300 cursor-default">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm font-medium">Total Events</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2" id="eventsCount">0</p>
+                            </div>
+                            <div class="bg-yellow-50 p-3 rounded-3xl">
+                                <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org">
+                                    <defs>
+]                                        <linearGradient id="ticketGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#f59e0b" /> 
+                                        <stop offset="100%" stop-color="#ef4444" />
+                                        </linearGradient>
+                                        
+                                        <mask id="ticketMask">
+                                        <rect x="4" y="10" width="32" height="20" rx="4" fill="white" />
+                                        <circle cx="4" cy="20" r="4" fill="black" />
+                                        <circle cx="36" cy="20" r="4" fill="black" />
+                                        </mask>
+                                    </defs>
+
+\                                    <rect x="4" y="10" width="32" height="20" rx="4" fill="url(#ticketGrad)" mask="url(#ticketMask)" />
+                                    
+                                    <line x1="14" y1="12" x2="14" y2="28" stroke="white" stroke-width="1.5" stroke-dasharray="2 2" opacity="0.6" />                                    
+                                    <rect x="4.5" y="10.5" width="31" height="19" rx="3.5" stroke="white" stroke-opacity="0.2" mask="url(#ticketMask)" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href = "/admin-panel/categories/" class="bg-white rounded-3xl shadow p-6 hover:scale-105 transition-transform duration-300 cursor-default">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm font-medium">Total Categories</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2" id="categoriesCount">0</p>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-3xl">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href = "/admin-panel/tags/" class="bg-white rounded-3xl shadow p-6 hover:scale-105 transition-transform duration-300 cursor-default">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm font-medium">Total Tags</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2" id="tagsCount">0</p>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-3xl">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="mb-6">
+                    <div class="flex gap-4 items-center flex-wrap">
+                        <input type="text" id="searchInput" placeholder="Search by name or slug..." 
+                            class="px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+                            oninput="filterEvents()">
+                        <select id="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500" onchange="filterEvents()">
+                            <option value="all">All Categories</option>
+                        </select>
+                        <select id="tagFilter" class="px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500" onchange="filterEvents()">
+                            <option value="all">All Tags</option>
+                        </select>
+                        <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500" onchange="filterEvents()">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <a href="/admin-panel/create-event/" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-3xl hover:bg-blue-700 transition">
+                            + Create Event
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eventsTableBody" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="8" class="px-6 py-4 text-center text-gray-500">Loading events...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div id="paginationControls" class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            <span id="paginationInfo">Loading...</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="prevBtn" onclick="loadPage(currentPage - 1)" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-3xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                Previous
+                            </button>
+                            <button id="nextBtn" onclick="loadPage(currentPage + 1)" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-3xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="viewEventModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-3xl bg-white">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <h3 class="text-2xl font-bold text-gray-900">Event Details</h3>
+                <button onclick="closeViewModal()" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">
+                    &times;
+                </button>
+            </div>
+            
+            <div id="modalContent" class="mt-4">
+                <div class="flex justify-center items-center py-8">
+                    <div class="animate-spin rounded-3xl h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allEvents = [];
+        let allCategories = [];
+        let allTags = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        let totalCount = 0;
+        const PAGE_SIZE = 10;
+        let searchDebounceTimer;
+
+        async function graphqlFetch(query, variables = {}, token = null) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `JWT ${token}`;
+            const res = await fetch('/graphql/', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ query, variables })
+            });
+            return res.json();
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const icon = document.getElementById('toggleIcon');
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M6 5l7 7-7 7" />`;
+            } else {
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />`;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/events/';
+        }
+
+        async function checkAdmin() {
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) {
+                window.location.href = '/login/';
+                return false;
+            }
+
+            try {
+                const data = await graphqlFetch(`
+                    query { me { id isStaff isSuperuser } }
+                `, {}, accessToken);
+
+                const user = data.data && data.data.me;
+                if (!user || (!user.isStaff && !user.isSuperuser)) {
+                    alert('Access denied. Admin only.');
+                    window.location.href = '/events/';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Error checking admin status:', error);
+                window.location.href = '/login/';
+                return false;
+            }
+        }
+
+        async function loadCategories() {
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const data = await graphqlFetch(`
+                    query { allCategories { id name } }
+                `, {}, accessToken);
+                allCategories = data.data?.allCategories || [];
+                const el = document.getElementById('categoriesCount');
+                if (el) el.textContent = allCategories.length;
+                populateCategoryFilter();
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+
+        async function loadTags() {
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const data = await graphqlFetch(`
+                    query { allEventTags { id name } }
+                `, {}, accessToken);
+                allTags = data.data?.allEventTags || [];
+                const el = document.getElementById('tagsCount');
+                if (el) el.textContent = allTags.length;
+                populateTagFilter();
+            } catch (error) {
+                console.error('Error loading tags:', error);
+            }
+        }
+
+        function populateCategoryFilter() {
+            const select = document.getElementById('categoryFilter');
+            select.innerHTML = '<option value="all">All Categories</option>';
+            allCategories.forEach(category => {
+                select.innerHTML += `<option value="${category.id}">${category.name}</option>`;
+            });
+        }
+
+        function populateTagFilter() {
+            const select = document.getElementById('tagFilter');
+            select.innerHTML = '<option value="all">All Tags</option>';
+            allTags.forEach(tag => {
+                select.innerHTML += `<option value="${tag.id}">${tag.name}</option>`;
+            });
+        }
+
+        async function loadEvents(page) {
+            page = page || currentPage || 1;
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const searchTerm = document.getElementById('searchInput').value.trim();
+                const categoryId = document.getElementById('categoryFilter').value;
+                const tagId = document.getElementById('tagFilter').value;
+                const status = document.getElementById('statusFilter').value;
+                const data = await graphqlFetch(`
+                    query($page: Int, $pageSize: Int, $search: String, $categoryId: ID, $tagId: ID, $status: String) {
+                        paginatedEvents(page: $page, pageSize: $pageSize, search: $search, categoryId: $categoryId, tagId: $tagId, status: $status) {
+                            results {
+                                id title slug featureImage eventDate isActive viewsCount
+                                city { name } state { name }
+                                category { name } tags { name }
+                            }
+                            totalCount numPages currentPage
+                        }
+                    }
+                `, {
+                    page,
+                    pageSize: PAGE_SIZE,
+                    search: searchTerm || null,
+                    categoryId: categoryId !== 'all' ? categoryId : null,
+                    tagId: tagId !== 'all' ? tagId : null,
+                    status: status !== 'all' ? status : null
+                }, accessToken);
+                const pg = data.data?.paginatedEvents;
+                if (!pg) { showError('Error loading events'); return; }
+                allEvents = pg.results;
+                totalCount = pg.totalCount;
+                totalPages = pg.numPages;
+                currentPage = pg.currentPage;
+                const el = document.getElementById('eventsCount');
+                if (el) el.textContent = totalCount;
+                renderEvents(allEvents, (currentPage - 1) * PAGE_SIZE);
+                updatePaginationControls();
+            } catch (error) {
+                console.error('Error loading events:', error);
+                showError('Error loading events');
+            }
+        }
+
+        function updatePaginationControls() {
+            const paginationInfo = document.getElementById('paginationInfo');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const start = totalCount > 0 ? ((currentPage - 1) * PAGE_SIZE) + 1 : 0;
+            const end = Math.min(currentPage * PAGE_SIZE, totalCount);
+            if (paginationInfo) paginationInfo.textContent = totalCount > 0 ? `Showing ${start}-${end} of ${totalCount} events` : 'No events found';
+            if (prevBtn) prevBtn.disabled = currentPage <= 1;
+            if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+        }
+
+        function loadPage(page) {
+            if (page >= 1 && page <= totalPages) loadEvents(page);
+        }
+
+        function renderEvents(events, startIndex) {
+            const tbody = document.getElementById('eventsTableBody');
+
+            if (!events || events.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No events found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = events.map((event, index) => `
+                <tr class="hover:scale-105 transition-transform duration-300 ease-in-out cursor-default">
+                    <td class="px-6 py-4 text-sm text-gray-900 font-medium">${(startIndex || 0) + index + 1}</td>
+                    <td class="px-6 py-4">
+                        ${event.featureImage
+                            ? `<img src="${event.featureImage}" alt="${event.title}" class="w-14 h-14 object-cover rounded-3xl border border-gray-200">`
+                            : `<div class="w-14 h-14 bg-gray-100 rounded-3xl border border-gray-200 flex items-center justify-center text-gray-400 text-xs">No Image</div>`
+                        }
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">${event.title}</div>
+                        <div class="text-sm text-gray-500">${event.slug}</div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                        ${event.eventDate
+                            ? new Date(event.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                            : 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${event.city?.name || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${event.viewsCount || 0}</td>
+                    <td class="px-6 py-4">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" ${event.isActive ? 'checked' : ''}
+                                onchange="toggleStatus('${event.id}', this.checked)"
+                                class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-3xl peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-3xl after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </td>
+                    <td class="px-6 py-4 text-sm font-medium space-x-2">
+                        <button onclick="viewEventModal('${event.slug}')" class="text-blue-600 hover:text-blue-900">View</button>
+                        <a href="/admin-panel/edit-event/?slug=${event.slug}" class="text-green-600 hover:text-green-900">Edit</a>
+                        <button onclick="deleteEvent('${event.id}')" class="text-red-600 hover:text-red-900">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterEvents() {
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => loadEvents(1), 350);
+        }
+
+        async function toggleStatus(eventId, isActive) {
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const data = await graphqlFetch(`
+                    mutation UpdateEvent($id: ID!, $isActive: Boolean) {
+                        updateEvent(id: $id, isActive: $isActive) {
+                            success
+                            message
+                        }
+                    }
+                `, { id: eventId, isActive }, accessToken);
+                const result = data.data?.updateEvent;
+                if (result?.success) {
+                    showSuccess(`Event ${isActive ? 'activated' : 'deactivated'} successfully`);
+                } else {
+                    showError(result?.message || 'Failed to update event status');
+                }
+                await loadEvents();
+            } catch (error) {
+                console.error('Error updating status:', error);
+                showError('Error updating event status');
+                await loadEvents();
+            }
+        }
+
+        async function deleteEvent(eventId) {
+            if (!confirm('Are you sure you want to delete this event?')) return;
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const data = await graphqlFetch(`
+                    mutation DeleteEvent($id: ID!) {
+                        deleteEvent(id: $id) { success message }
+                    }
+                `, { id: eventId }, accessToken);
+                const result = data.data?.deleteEvent;
+                if (result?.success) {
+                    showSuccess('Event deleted successfully');
+                } else {
+                    showError(result?.message || 'Failed to delete event');
+                }
+                await loadEvents();
+            } catch (error) {
+                console.error('Error deleting event:', error);
+                showError('Error deleting event');
+            }
+        }
+
+        async function viewEventModal(eventSlug) {
+            const modal = document.getElementById('viewEventModal');
+            const modalContent = document.getElementById('modalContent');
+
+            modal.classList.remove('hidden');
+            modalContent.innerHTML = `
+                <div class="flex justify-center items-center py-8">
+                    <div class="animate-spin rounded-3xl h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+            `;
+
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const data = await graphqlFetch(`
+                    query EventDetail($slug: String!) {
+                        eventBySlug(slug: $slug) {
+                            id title slug featureImage isActive viewsCount
+                            eventDate startTime endTime venue
+                            shortDescription longDescription
+                            city { name } state { name } country { name }
+                            category { name } tags { name }
+                            extraImages { image }
+                        }
+                    }
+                `, { slug: eventSlug }, accessToken);
+
+                const event = data.data?.eventBySlug;
+                if (event) {
+                    displayEventDetails(event);
+                } else {
+                    modalContent.innerHTML = `<div class="text-center py-8"><p class="text-red-600">Event not found</p></div>`;
+                }
+            } catch (error) {
+                console.error('Error loading event:', error);
+                modalContent.innerHTML = `<div class="text-center py-8"><p class="text-red-600">Error loading event details</p></div>`;
+            }
+        }
+
+        function displayEventDetails(event) {
+            const modalContent = document.getElementById('modalContent');
+
+            modalContent.innerHTML = `
+                <div class="space-y-6">
+                    ${event.featureImage ? `
+                        <div class="w-full h-64 bg-gray-100 rounded-3xl overflow-hidden">
+                            <img src="${event.featureImage}" alt="${event.title}" class="w-full h-full object-cover">
+                        </div>
+                    ` : ''}
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Event Information</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-xs text-gray-500">Title</label>
+                                    <p class="text-sm font-medium text-gray-900">${event.title}</p>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500">Slug</label>
+                                    <p class="text-sm text-gray-700">${event.slug}</p>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500">Status</label>
+                                    <p class="text-sm">
+                                        <span class="px-2 py-1 rounded-3xl text-xs ${event.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                            ${event.isActive ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500">Views</label>
+                                    <p class="text-sm text-gray-900">${event.viewsCount || 0}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Date & Location</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-xs text-gray-500">Event Date</label>
+                                    <p class="text-sm text-gray-900">
+                                    ${event.eventDate
+                                        ? new Date(event.eventDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                                        : 'N/A'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500">Time</label>
+                                    <p class="text-sm text-gray-900">
+                                        ${event.startTime ? new Date('1970-01-01T' + event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}
+                                        -
+                                        ${event.endTime ? new Date('1970-01-01T' + event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500">Venue</label>
+                                    <p class="text-sm text-gray-900">${event.venue || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500">Location</label>
+                                    <p class="text-sm text-gray-900">
+                                        ${event.city?.name || 'N/A'}, ${event.state?.name || 'N/A'}, ${event.country?.name || 'N/A'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Description</h4>
+                        <div class="space-y-2">
+                            <div>
+                                <label class="text-xs text-gray-500">Short Description</label>
+                                <p class="text-sm text-gray-700">${event.shortDescription || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500">Long Description</label>
+                                <p class="text-sm text-gray-700 whitespace-pre-wrap">${event.longDescription || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Categories</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${event.category && event.category.length > 0
+                                    ? event.category.map(cat => `<span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-3xl">${cat.name}</span>`).join('')
+                                    : '<p class="text-sm text-gray-500">No categories</p>'
+                                }
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Tags</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${event.tags && event.tags.length > 0
+                                    ? event.tags.map(tag => `<span class="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-3xl">${tag.name}</span>`).join('')
+                                    : '<p class="text-sm text-gray-500">No tags</p>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    ${event.extraImages && event.extraImages.length > 0 ? `
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Gallery</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                ${event.extraImages.map(img => `
+                                    <div class="h-24 bg-gray-100 rounded overflow-hidden">
+                                        <img src="${img.image}" alt="Event image" class="w-full h-full object-cover">
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="flex justify-end gap-3 pt-4 border-t">
+                        <button onclick="closeViewModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-3xl hover:bg-gray-300">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewEventModal').classList.add('hidden');
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.classList.remove('hidden');
+            document.getElementById('errorMessage').classList.add('hidden');
+            setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            if (Array.isArray(message)) {
+                el.innerHTML = message.map(msg => `<div class="mb-2 last:mb-0">• ${msg}</div>`).join('');
+            } else {
+                el.textContent = message;
+            }
+            el.classList.remove('hidden');
+            document.getElementById('successMessage').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAdmin = await checkAdmin();
+            if (isAdmin) {
+                await loadCategories();
+                await loadTags();
+                loadEvents();
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('viewEventModal');
+            if (event.target === modal) {
+                closeViewModal();
+            }
+        });
+    </script>
+</body>
+</html>
