@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+    <nav class="border-b border-gray-200 bg-white">
+        <div class="max-w-4xl mx-auto px-6 py-6 flex justify-between items-center">
+            <h1 class="text-3xl font-mono tracking-tight"><a href="/admin-panel/dashboard/" class="hover:text-gray-600 transition">ADMIN PANEL</a></h1>
+            <div class="space-x-4">
+                <a href="/admin-panel/dashboard/" class="text-sm text-gray-600 hover:text-gray-900">Dashboard</a>
+                <button onclick="logout()" class="text-sm text-red-600 hover:text-red-900">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-6 py-12">
+        <button onclick="goBack()" class="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-8 font-medium">
+            <span class="text-2xl">←</span> 
+            <span>Back to Dashboard</span>
+        </button>
+
+        <div id="successMessage" class="hidden mb-6 p-4 bg-green-50 border border-green-200 rounded-3xl text-green-800"></div>
+        <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-3xl text-red-800"></div>
+
+        <div class="bg-white rounded-3xl shadow-lg p-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8">Edit Event</h2>
+
+            <div id="loadingContainer" class="text-center py-16">
+                <p class="text-gray-500 text-lg">Loading event data...</p>
+            </div>
+
+            <form id="editEventForm" onsubmit="submitEvent(event)" class="space-y-6 hidden">
+                {% csrf_token %}
+                <input type="hidden" id="eventSlug">
+                <div class="border-b pb-6">                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Event Title *</label>
+                            <input type="text" id="title" name="title"
+                                placeholder="Enter event title"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <span id="title-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+                            <input type="text" id="slug" name="slug" readonly
+                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl bg-gray-100 text-gray-600">
+                            <p class="text-xs text-gray-500 mt-1">Slug cannot be changed</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Short Description *</label>
+                            <textarea id="shortDescription" name="short_description"
+                                placeholder="Brief description (max 255 characters)"
+                                maxlength="255"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                rows="2"></textarea>
+                            <span id="shortDescription-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Long Description *</label>
+                            <textarea id="longDescription" name="long_description"
+                                placeholder="Detailed event description"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                rows="4"></textarea>
+                            <span id="longDescription-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-b pb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Date & Time</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Event Date *</label>
+                            <input type="date" id="eventDate" name="event_date"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <span id="eventDate-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
+                            <input type="time" id="startTime" name="start_time"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <span id="startTime-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">End Time *</label>
+                            <input type="time" id="endTime" name="end_time"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <span id="endTime-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-b pb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Location</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Venue</label>
+                            <input type="text" id="venue" name="venue" 
+                                placeholder="Event venue name"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <span id="venue-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Country *</label>
+                                <select id="country" name="country" onchange="loadStates()" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select Country</option>
+                                </select>
+                                <span id="country-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">State *</label>
+                                <select id="state" name="state" onchange="loadCities()" required disabled
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select State</option>
+                                </select>
+                                <span id="state-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                                <select id="city" name="city" required disabled
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select City</option>
+                                </select>
+                                <span id="city-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-b pb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Categories & Tags</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Categories *</label>
+                            <div class="relative">
+                                <button type="button" id="categoriesDropdownBtn" onclick="toggleDropdown('categories')" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-3xl bg-white text-left flex justify-between items-center focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <span id="categoriesPlaceholder" class="text-gray-500">Select categories...</span>
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div id="categoriesDropdown" class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-3xl shadow-lg max-h-60 overflow-y-auto">
+                                    <div id="categoriesOptions" class="p-2">
+                                        <p class="text-gray-500 text-sm p-2">Loading categories...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="selectedCategoriesBadges" class="mt-2 flex flex-wrap gap-2"></div>
+                            <span id="categories-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                            <div class="relative">
+                                <button type="button" id="tagsDropdownBtn" onclick="toggleDropdown('tags')" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-3xl bg-white text-left flex justify-between items-center focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <span id="tagsPlaceholder" class="text-gray-500">Select tags...</span>
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div id="tagsDropdown" class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-3xl shadow-lg max-h-60 overflow-y-auto">
+                                    <div id="tagsOptions" class="p-2">
+                                        <p class="text-gray-500 text-sm p-2">Loading tags...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="selectedTagsBadges" class="mt-2 flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-b pb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Images</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Current Feature Image</label>
+                            <div id="currentFeatureImage" class="mb-2"></div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Update Feature Image</label>
+                            <input type="file" id="featureImage" name="feature_image" accept="image/*"
+                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-3xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                onchange="previewFeatureImage()">
+                            <span id="featureImage-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            <div id="featureImagePreview"></div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Current Gallery</label>
+                            <div id="currentExtraImages" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2"></div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Add Gallery</label>
+                            <input type="file" id="extraImages" name="extra_images" accept="image/*" multiple
+                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-3xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                onchange="previewExtraImages()">
+                            <span id="extraImages-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            <div id="extraImagesPreview" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Status</h3>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="isActive" name="is_active" class="rounded border-gray-300">
+                        <label for="isActive" class="ml-2 text-sm text-gray-700">Event is Active</label>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-6">
+                    <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-3xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed" id="submitBtn">
+                        Update Event
+                    </button>
+                    <button type="button" onclick="goBack()" class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-3xl hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let selectedCategories = [];
+        let selectedTags = [];
+        let allCategories = [];
+        let allTags = [];
+        let currentEvent = null;
+        let allEventSlugs = [];  
+        let removedFeatureImage = false;
+        let removedGalleryImageIds = [];
+        let newExtraFiles = [];
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/login/';
+        }
+
+        function goBack() {
+            window.location.href = '/admin-panel/dashboard/';
+        }
+
+        async function checkAdmin() {
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) {
+                window.location.href = '/login/';
+                return false;
+            }
+
+            try {
+                const res = await fetch('/graphql/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
+                    body: JSON.stringify({ query: '{ me { id isStaff isSuperuser } }' })
+                });
+                const data = await res.json();
+                const user = data.data && data.data.me;
+                if (!user || (!user.isStaff && !user.isSuperuser)) {
+                    alert('Only admins can edit events');
+                    window.location.href = '/events/';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Error checking admin status:', error);
+                window.location.href = '/login/';
+                return false;
+            }
+        }
+
+        async function loadCategoriesAndTags() {
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const res = await fetch('/graphql/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
+                    body: JSON.stringify({ query: '{ allCategories { id name } allEventTags { id name } }' })
+                });
+                const data = await res.json();
+                allCategories = (data.data && data.data.allCategories) || [];
+                allTags = (data.data && data.data.allEventTags) || [];
+                renderCategories();
+                renderTags();
+            } catch (error) {
+                console.error('Error loading categories and tags:', error);
+                document.getElementById('categoriesOptions').innerHTML = '<p class="text-red-500 text-sm p-2">Failed to load categories</p>';
+                document.getElementById('tagsOptions').innerHTML = '<p class="text-red-500 text-sm p-2">Failed to load tags</p>';
+            }
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoriesOptions');
+            container.innerHTML = allCategories.map(cat => {
+                const isSelected = selectedCategories.includes(cat.id);
+                return `
+                    <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
+                        <input type="checkbox" value="${cat.id}" 
+                            ${isSelected ? 'checked' : ''}
+                            onchange="toggleCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}')"
+                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-700">${cat.name}</span>
+                    </label>
+                `;
+            }).join('');
+            updateCategoriesBadges();
+        }
+
+        function renderTags() {
+            const container = document.getElementById('tagsOptions');
+            container.innerHTML = allTags.map(tag => {
+                const isSelected = selectedTags.includes(tag.id);
+                return `
+                    <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
+                        <input type="checkbox" value="${tag.id}" 
+                            ${isSelected ? 'checked' : ''}
+                            onchange="toggleTag('${tag.id}', '${tag.name.replace(/'/g, "\\'")}')"
+                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-700">${tag.name}</span>
+                    </label>
+                `;
+            }).join('');
+            updateTagsBadges();
+        }
+
+        function toggleCategory(categoryId, categoryName) {
+            if (selectedCategories.includes(categoryId)) {
+                selectedCategories = selectedCategories.filter(id => id !== categoryId);
+            } else {
+                selectedCategories.push(categoryId);
+            }
+            updateCategoriesBadges();
+            showCategoriesError();
+        }
+
+        function toggleTag(tagId, tagName) {
+            if (selectedTags.includes(tagId)) {
+                selectedTags = selectedTags.filter(id => id !== tagId);
+            } else {
+                selectedTags.push(tagId);
+            }
+            updateTagsBadges();
+        }
+
+        function updateCategoriesBadges() {
+            const container = document.getElementById('selectedCategoriesBadges');
+            const placeholder = document.getElementById('categoriesPlaceholder');
+            
+            if (selectedCategories.length === 0) {
+                container.innerHTML = '';
+                placeholder.textContent = 'Select categories...';
+                placeholder.classList.add('text-gray-500');
+                placeholder.classList.remove('text-gray-900');
+                return;
+            }
+            
+            placeholder.textContent = `${selectedCategories.length} selected`;
+            placeholder.classList.remove('text-gray-500');
+            placeholder.classList.add('text-gray-900');
+            
+            const selectedCats = allCategories.filter(cat => selectedCategories.includes(cat.id));
+            container.innerHTML = selectedCats.map(cat => `
+                <span class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-3xl">
+                    ${cat.name}
+                    <button type="button" onclick="removeCategory('${cat.id}')" class="hover:bg-blue-200 rounded-3xl p-0.5">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </span>
+            `).join('');
+        }
+
+        function updateTagsBadges() {
+            const container = document.getElementById('selectedTagsBadges');
+            const placeholder = document.getElementById('tagsPlaceholder');
+            
+            if (selectedTags.length === 0) {
+                container.innerHTML = '';
+                placeholder.textContent = 'Select tags...';
+                placeholder.classList.add('text-gray-500');
+                placeholder.classList.remove('text-gray-900');
+                return;
+            }
+            
+            placeholder.textContent = `${selectedTags.length} selected`;
+            placeholder.classList.remove('text-gray-500');
+            placeholder.classList.add('text-gray-900');
+            
+            const selectedTagsData = allTags.filter(tag => selectedTags.includes(tag.id));
+            container.innerHTML = selectedTagsData.map(tag => `
+                <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 text-sm rounded-3xl">
+                    ${tag.name}
+                    <button type="button" onclick="removeTag('${tag.id}')" class="hover:bg-green-200 rounded-3xl p-0.5">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </span>
+            `).join('');
+        }
+
+        function removeCategory(categoryId) {
+            selectedCategories = selectedCategories.filter(id => id !== categoryId);
+            renderCategories();
+            showCategoriesError();
+        }
+
+        function removeTag(tagId) {
+            selectedTags = selectedTags.filter(id => id !== tagId);
+            renderTags();
+        }
+
+        function toggleDropdown(type) {
+            const dropdown = document.getElementById(`${type}Dropdown`);
+            const isHidden = dropdown.classList.contains('hidden');
+            
+            document.getElementById('categoriesDropdown').classList.add('hidden');
+            document.getElementById('tagsDropdown').classList.add('hidden');
+            
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            const categoriesBtn = document.getElementById('categoriesDropdownBtn');
+            const categoriesDropdown = document.getElementById('categoriesDropdown');
+            const tagsBtn = document.getElementById('tagsDropdownBtn');
+            const tagsDropdown = document.getElementById('tagsDropdown');
+            
+            if (!categoriesBtn.contains(event.target) && !categoriesDropdown.contains(event.target)) {
+                categoriesDropdown.classList.add('hidden');
+            }
+            if (!tagsBtn.contains(event.target) && !tagsDropdown.contains(event.target)) {
+                tagsDropdown.classList.add('hidden');
+            }
+        });
+
+        function previewFeatureImage() {
+            const file = document.getElementById('featureImage').files[0];
+            const preview = document.getElementById('featureImagePreview');
+            preview.innerHTML = '';
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `
+                        <div class="mt-3 relative inline-block">
+                            <img src="${e.target.result}" class="h-32 w-32 object-cover rounded" alt="Preview">
+                            <button type="button" onclick="removeNewFeatureImage()"
+                                class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-3xl w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 leading-none">✕</button>
+                            <p class="text-xs text-gray-500 mt-1">New image</p>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeCurrentFeatureImage() {
+            removedFeatureImage = true;
+            document.getElementById('currentFeatureImage').innerHTML =
+                '<p class="text-xs text-gray-400 italic mt-1">Feature image removed</p>';
+        }
+
+        function removeCurrentGalleryImage(imageId, el) {
+            removedGalleryImageIds.push(imageId);
+            el.remove();
+        }
+
+        function removeNewFeatureImage() {
+            document.getElementById('featureImagePreview').innerHTML = '';
+            document.getElementById('featureImage').value = '';
+        }
+
+        function previewExtraImages() {
+            newExtraFiles = Array.from(document.getElementById('extraImages').files);
+            renderNewExtraImagePreviews();
+        }
+
+        function renderNewExtraImagePreviews() {
+            const preview = document.getElementById('extraImagesPreview');
+            preview.innerHTML = '';
+            newExtraFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'relative w-fit';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="h-24 w-24 object-cover rounded" alt="Preview">
+                        <button type="button" onclick="removeNewExtraImage(${index})"
+                            class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-3xl w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 leading-none">✕</button>`;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeNewExtraImage(index) {
+            newExtraFiles.splice(index, 1);
+            renderNewExtraImagePreviews();
+        }
+
+        async function loadCountries() {
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const res = await fetch('/graphql/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
+                    body: JSON.stringify({ query: '{ allCountries { id name } }' })
+                });
+                const data = await res.json();
+                const countries = (data.data && data.data.allCountries) || [];
+                const select = document.getElementById('country');
+                select.innerHTML = '<option value="">Select Country</option>' +
+                    countries.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            } catch (error) {
+                console.error('Error loading countries:', error);
+            }
+        }
+
+        async function loadStates() {
+            const countryId = document.getElementById('country').value;
+            const stateSelect = document.getElementById('state');
+            const citySelect = document.getElementById('city');
+            
+            stateSelect.innerHTML = '<option value="">Select State</option>';
+            citySelect.innerHTML = '<option value="">Select City</option>';
+            citySelect.disabled = true;
+
+            if (!isPopulating) {
+                showFieldError('country', countryId ? '' : 'Country is required.');
+                showFieldError('state', '');
+                showFieldError('city', '');
+            }
+
+            if (!countryId) {
+                stateSelect.disabled = true;
+                return;
+            }
+            
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const res = await fetch('/graphql/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
+                    body: JSON.stringify({ query: `{ statesByCountry(countryId: "${countryId}") { id name } }` })
+                });
+                const data = await res.json();
+                const states = (data.data && data.data.statesByCountry) || [];
+                stateSelect.innerHTML = '<option value="">Select State</option>' +
+                    states.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                stateSelect.disabled = false;
+            } catch (error) {
+                console.error('Error loading states:', error);
+            }
+        }
+
+        async function loadCities() {
+            const stateId = document.getElementById('state').value;
+            const citySelect = document.getElementById('city');
+            
+            citySelect.innerHTML = '<option value="">Select City</option>';
+
+            if (!isPopulating) {
+                showFieldError('state', stateId ? '' : 'State is required.');
+                showFieldError('city', '');
+            }
+
+            if (!stateId) {
+                citySelect.disabled = true;
+                return;
+            }
+            
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const res = await fetch('/graphql/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
+                    body: JSON.stringify({ query: `{ citiesByState(stateId: "${stateId}") { id name } }` })
+                });
+                const data = await res.json();
+                const cities = (data.data && data.data.citiesByState) || [];
+                citySelect.innerHTML = '<option value="">Select City</option>' +
+                    cities.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                citySelect.disabled = false;
+            } catch (error) {
+                console.error('Error loading cities:', error);
+            }
+        }
+
+        async function loadEventData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const slug = urlParams.get('slug');
+
+            if (!slug) {
+                showError('No event slug provided');
+                setTimeout(() => window.location.href = '/admin-panel/dashboard/', 2000);
+                return;
+            }
+
+            try {
+                const res = await fetch('/graphql/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: `{
+                        eventBySlug(slug: "${slug}") {
+                            id title slug isActive venue
+                            shortDescription longDescription
+                            eventDate startTime endTime
+                            featureImage
+                            extraImages { id image }
+                            country { id name }
+                            state { id name }
+                            city { id name }
+                            category { id name }
+                            tags { id name }
+                        }
+                    }` })
+                });
+                const data = await res.json();
+                const event = data.data && data.data.eventBySlug;
+                if (event) {
+                    currentEvent = event;
+                    populateForm(currentEvent);
+                    document.getElementById('loadingContainer').classList.add('hidden');
+                    document.getElementById('editEventForm').classList.remove('hidden');
+                } else {
+                    showError('Failed to load event data');
+                    setTimeout(() => window.location.href = '/admin-panel/dashboard/', 2000);
+                }
+            } catch (error) {
+                console.error('Error loading event:', error);
+                showError('Error loading event data');
+                setTimeout(() => window.location.href = '/admin-panel/dashboard/', 2000);
+            }
+        }
+
+        async function populateForm(event) {
+            document.getElementById('eventSlug').value = event.slug;
+            document.getElementById('title').value = event.title;
+            document.getElementById('slug').value = event.slug;
+            document.getElementById('shortDescription').value = event.shortDescription;
+            document.getElementById('longDescription').value = event.longDescription;
+            document.getElementById('eventDate').value = event.eventDate;
+            document.getElementById('startTime').value = event.startTime;
+            document.getElementById('endTime').value = event.endTime;
+            document.getElementById('venue').value = event.venue || '';
+            document.getElementById('isActive').checked = event.isActive;
+
+            if (event.country && event.country.id) {
+                document.getElementById('country').value = event.country.id;
+                await loadStates();
+                
+                if (event.state && event.state.id) {
+                    document.getElementById('state').value = event.state.id;
+                    await loadCities();
+                    
+                    if (event.city && event.city.id) {
+                        document.getElementById('city').value = event.city.id;
+                    }
+                }
+            }
+
+
+            if (event.category && Array.isArray(event.category)) {
+                selectedCategories = event.category.map(c => c.id);
+            }
+            if (event.tags && Array.isArray(event.tags)) {
+                selectedTags = event.tags.map(t => t.id);
+            }
+
+            renderCategories();
+            renderTags();
+
+            if (event.featureImage) {
+                document.getElementById('currentFeatureImage').innerHTML = `
+                    <div class="relative inline-block">
+                        <img src="${event.featureImage}" class="h-32 w-32 object-cover rounded" alt="Current feature image">
+                        <button type="button" onclick="removeCurrentFeatureImage()"
+                            class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-3xl w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 leading-none">✕</button>
+                    </div>
+                `;
+            }
+
+            if (event.extraImages && Array.isArray(event.extraImages)) {
+                const container = document.getElementById('currentExtraImages');
+                container.innerHTML = event.extraImages.map(imgObj => `
+                    <div class="relative w-fit">
+                        <img src="${imgObj.image}" class="h-24 w-24 object-cover rounded" alt="Extra image">
+                        <button type="button" onclick="removeCurrentGalleryImage('${imgObj.id}', this.parentElement)"
+                            class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-3xl w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 leading-none">✕</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function submitEvent(event) {
+            event.preventDefault();
+
+            if (!validateForm()) {
+                const firstError = document.querySelector('[id$="-error"]:not(.hidden)');
+                if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Updating Event...';
+
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const eventId = currentEvent.id;
+
+                const mutation = `
+                    mutation UpdateEvent(
+                        $id: ID!, $title: String, $countryId: ID, $stateId: ID, $cityId: ID,
+                        $venue: String, $eventDate: Date, $startTime: Time, $endTime: Time,
+                        $shortDescription: String, $longDescription: String,
+                        $categoryIds: [ID], $tagIds: [ID], $isActive: Boolean,
+                        $removeFeatureImage: Boolean, $removeExtraImageIds: [ID]
+                    ) {
+                        updateEvent(
+                            id: $id, title: $title, countryId: $countryId, stateId: $stateId, cityId: $cityId,
+                            venue: $venue, eventDate: $eventDate, startTime: $startTime, endTime: $endTime,
+                            shortDescription: $shortDescription, longDescription: $longDescription,
+                            categoryIds: $categoryIds, tagIds: $tagIds, isActive: $isActive,
+                            removeFeatureImage: $removeFeatureImage, removeExtraImageIds: $removeExtraImageIds
+                        ) {
+                            success message
+                            event { id slug }
+                        }
+                    }
+                `;
+
+                const variables = {
+                    id:               eventId,
+                    title:            document.getElementById('title').value,
+                    countryId:        document.getElementById('country').value,
+                    stateId:          document.getElementById('state').value,
+                    cityId:           document.getElementById('city').value,
+                    venue:            document.getElementById('venue').value,
+                    eventDate:        document.getElementById('eventDate').value,
+                    startTime:        document.getElementById('startTime').value,
+                    endTime:          document.getElementById('endTime').value,
+                    shortDescription: document.getElementById('shortDescription').value,
+                    longDescription:  document.getElementById('longDescription').value,
+                    categoryIds:      selectedCategories.map(String),
+                    tagIds:           selectedTags.map(String),
+                    isActive:         document.getElementById('isActive').checked,
+                    removeFeatureImage:   removedFeatureImage,
+                    removeExtraImageIds:  removedGalleryImageIds.map(String),
+                };
+
+                const res = await fetch('/graphql/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
+                    body: JSON.stringify({ query: mutation, variables })
+                });
+                const data = await res.json();
+                const result = data.data?.updateEvent;
+
+                if (!result?.success) {
+                    showError(result?.message || 'Error updating event. Please try again.');
+                    return;
+                }
+
+                const featureImageFile = document.getElementById('featureImage').files[0];
+                if (featureImageFile) {
+                    const imgForm = new FormData();
+                    imgForm.append('feature_image', featureImageFile);
+                    await fetch(`/events/${eventId}/feature-image/`, {
+                        method: 'PATCH',
+                        headers: { 'Authorization': `JWT ${accessToken}` },
+                        body: imgForm
+                    });
+                }
+
+                if (newExtraFiles.length > 0) {
+                    const extraForm = new FormData();
+                    newExtraFiles.forEach(img => extraForm.append('images', img));
+                    await fetch(`/events/${eventId}/extra-images/`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `JWT ${accessToken}` },
+                        body: extraForm
+                    });
+                }
+
+                showSuccess('Event updated successfully! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = '/admin-panel/dashboard/';
+                }, 2000);
+
+            } catch (error) {
+                console.error('Network Error:', error);
+                showError('Network error: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Update Event';
+            }
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.classList.remove('hidden');
+            document.getElementById('errorMessage').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            
+            if (Array.isArray(message)) {
+                el.innerHTML = message.map(msg => `<div class="mb-2 last:mb-0">• ${msg}</div>`).join('');
+            } else {
+                el.textContent = message;
+            }
+            
+            el.classList.remove('hidden');
+            document.getElementById('successMessage').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAdmin = await checkAdmin();
+            if (isAdmin) {
+                await loadCountries();
+                await loadCategoriesAndTags();
+                await loadEventData();
+            }
+        });
+
+    
+        let isPopulating = false;   
+
+        function slugifyTitle(value) {
+            return value.trim().toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-');
+        }
+
+        async function loadAllEventSlugs() {
+            try {
+                const res = await fetch('/graphql/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: '{ allEvents { slug } }' })
+                });
+                const data = await res.json();
+                allEventSlugs = ((data.data && data.data.allEvents) || []).map(e => e.slug);
+            } catch (e) {
+                console.error('Error loading event slugs:', e);
+            }
+        }
+
+        const eventFieldRules = {
+            title:            { name: 'Title',             required: true,  minLength: 3,  trim: true, noMultiSpace: true, pattern: /^[a-zA-Z][a-zA-Z0-9.,/?;':\u2019"{}[\]\-=_+()&*^%$#@!~`\u2014]*(\s+[a-zA-Z0-9.,/?;':\u2019"{}[\]\-=_+()&*^%$#@!~`\u2014]+)*$/, patternMessage: 'Title must start with a letter. Letters, numbers, spaces and special characters (.,/?;\':"{}[]-=_+()&*^%$#@!~`) are allowed.' },
+            shortDescription: { name: 'Short description', required: true,  maxLength: 255, trim: true, noMultiSpace: true, pattern: /^[a-zA-Z][a-zA-Z0-9.,/?;':\u2019"{}[\]\-=_+()&*^%$#@!~`\u2014]*(\s+[a-zA-Z0-9.,/?;':\u2019"{}[\]\-=_+()&*^%$#@!~`\u2014]+)*$/, patternMessage: 'Short Description must start with a letter. Letters, numbers, spaces and special characters (.,/?;\':"{}[]-=_+()&*^%$#@!~`) are allowed.' },
+            longDescription:  { name: 'Long description',  required: true,  minLength: 20, trim: true, noMultiSpace: true, pattern: /^[a-zA-Z][a-zA-Z0-9.,/?;':\u2019"{}[\]\-=_+()&*^%$#@!~`\u2014]*(\s+[a-zA-Z0-9.,/?;':\u2019"{}[\]\-=_+()&*^%$#@!~`\u2014]+)*$/, patternMessage: 'Long Description must start with a letter. Letters, numbers, spaces and special characters (.,/?;\':"{}[]-=_+()&*^%$#@!~`) are allowed.' },
+            venue:            { name: 'Venue',             required: true,  trim: true, noMultiSpace: true, pattern: /^[a-zA-Z][a-zA-Z0-9.,/?;':\u2019"{}[\]\-=_+()&*^%$#@!~`\u2014]*(\s+[a-zA-Z0-9.,/?;':\u2019"{}[\]\-=_+()&*^%$#@!~`\u2014]+)*$/, patternMessage: 'Venue must start with a letter. Letters, numbers, spaces and special characters (.,/?;\':"{}[]-=_+()&*^%$#@!~`) are allowed.' },
+            eventDate:        { name: 'Event date',        required: true },
+            startTime:        { name: 'Start time',        required: true },
+            endTime:          { name: 'End time',          required: true },
+            country:          { name: 'Country',           required: true },
+            state:            { name: 'State',             required: true },
+            city:             { name: 'City',              required: true },
+            feature_image:    { name: 'Feature Image',     required: true },
+        };
+
+        function debounce(fn, delay) {
+            let timer;
+            return function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+
+        function showFieldError(fieldId, errorMessage) {
+            const input   = document.getElementById(fieldId);
+            const errSpan = document.getElementById(fieldId + '-error');
+            if (!errSpan) return;
+
+            if (input) {
+                const hasValue = input.files ? input.files.length > 0 : !!input.value;
+                input.classList.toggle('border-red-500',   !!errorMessage);
+                input.classList.toggle('border-green-500', !errorMessage && hasValue);
+                input.classList.toggle('border-gray-300',  !errorMessage && !hasValue);
+            }
+
+            errSpan.textContent = errorMessage;
+            errSpan.classList.toggle('hidden', !errorMessage);
+        }
+
+        function validateEventField(fieldId, value) {
+            const rules = eventFieldRules[fieldId];
+            if (!rules) return '';
+
+            const trimmed = (value || '').trim();
+
+            if (rules.required && !trimmed)
+                return `${rules.name} is required.`;
+
+            if (!trimmed) return '';   
+
+            if (rules.trim && value !== value.trim())
+                return `${rules.name} cannot have leading or trailing spaces.`;
+
+            if (rules.noMultiSpace && / {2,}/.test(value))
+                return `${rules.name} cannot contain multiple consecutive spaces.`;
+
+            if (rules.minLength && trimmed.length < rules.minLength)
+                return `${rules.name} must be at least ${rules.minLength} characters.`;
+
+            if (rules.maxLength && trimmed.length > rules.maxLength)
+                return `${rules.name} cannot exceed ${rules.maxLength} characters.`;
+            
+            if (rules.pattern && !rules.pattern.test(trimmed))
+                return rules.patternMessage || `${rules.name} contains invalid characters.`;
+
+            if (fieldId === 'eventDate') {
+                const today    = new Date();
+                today.setHours(0, 0, 0, 0);
+                const selected = new Date(value);
+                if (selected <= today)
+                    return "Event date must be greater than today's date.";
+            }
+
+            if (fieldId === 'title') {
+                const candidateSlug = slugifyTitle(trimmed);
+                const currentSlug   = currentEvent ? currentEvent.slug : null;
+                if (candidateSlug !== currentSlug && allEventSlugs.includes(candidateSlug))
+                    return 'An event with this title already exists.';
+            }
+
+            return '';
+        }
+
+        function validateTimes() {
+            const start = document.getElementById('startTime').value;
+            const end   = document.getElementById('endTime').value;
+            if (start && end && end <= start) {
+                showFieldError('endTime', 'End time must be greater than start time.');
+                return false;
+            }
+            if (end) showFieldError('endTime', validateEventField('endTime', end));
+            return true;
+        }
+
+        function showCategoriesError() {
+            const errSpan = document.getElementById('categories-error');
+            const btn     = document.getElementById('categoriesDropdownBtn');
+            const error   = selectedCategories.length === 0 ? 'At least one category is required.' : '';
+
+            if (errSpan) {
+                errSpan.textContent = error;
+                errSpan.classList.toggle('hidden', !error);
+            }
+            if (btn) {
+                btn.classList.toggle('border-red-500',   !!error);
+                btn.classList.toggle('border-green-500', !error);
+                btn.classList.toggle('border-gray-300',  !!error);
+            }
+        }
+
+        function validateFileInput(fieldId) {
+            const input   = document.getElementById(fieldId);
+            const errSpan = document.getElementById(fieldId + '-error');
+            if (!input || !errSpan) return '';
+
+            const allowedExts = ['png', 'svg', 'jpg', 'jpeg'];
+            const maxSize     = 5 * 1024 * 1024;
+            const errors      = [];
+
+            Array.from(input.files).forEach(file => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (!allowedExts.includes(ext)) {
+                    errors.push(`'${file.name}': invalid type '.${ext}'. Allowed: png, svg, jpg, jpeg.`);
+                } else if (file.size > maxSize) {
+                    errors.push(`'${file.name}': ${(file.size / (1024 * 1024)).toFixed(2)} MB exceeds the 5 MB limit.`);
+                }
+            });
+
+            const errorMsg = errors.join(' ');
+            errSpan.textContent = errorMsg;
+            errSpan.classList.toggle('hidden', !errorMsg);
+            return errorMsg;
+        }
+
+        function validateForm() {
+            let hasErrors = false;
+
+            ['title', 'shortDescription', 'longDescription', 'venue',
+             'eventDate', 'startTime', 'endTime'].forEach(id => {
+                const val   = (document.getElementById(id) || {}).value || '';
+                const error = validateEventField(id, val);
+                showFieldError(id, error);
+                if (error) hasErrors = true;
+            });
+
+            if (!validateTimes()) hasErrors = true;
+
+            ['country', 'state', 'city'].forEach(id => {
+                const val   = (document.getElementById(id) || {}).value || '';
+                const error = val ? '' : `${eventFieldRules[id].name} is required.`;
+                showFieldError(id, error);
+                if (error) hasErrors = true;
+            });
+
+            if (selectedCategories.length === 0) {
+                showCategoriesError();
+                hasErrors = true;
+            }
+
+            if (validateFileInput('featureImage')) hasErrors = true;
+
+            const hasExistingFeatureImage = !removedFeatureImage && currentEvent && currentEvent.featureImage;
+            const hasNewFeatureImage = document.getElementById('featureImage').files.length > 0;
+            if (!hasExistingFeatureImage && !hasNewFeatureImage) {
+                const errSpan = document.getElementById('featureImage-error');
+                if (errSpan) { errSpan.textContent = 'Feature Image is required.'; errSpan.classList.remove('hidden'); }
+                hasErrors = true;
+            }
+
+            if (validateFileInput('extraImages')) hasErrors = true;
+
+            return !hasErrors;
+        }
+
+        function attachValidationListeners() {
+
+            ['title', 'shortDescription', 'longDescription', 'venue'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const debouncedFn = debounce(function () {
+                    showFieldError(id, validateEventField(id, this.value));
+                }, 350);
+                el.addEventListener('input', debouncedFn);
+                el.addEventListener('blur',  function () {
+                    showFieldError(id, validateEventField(id, this.value));
+                });
+            });
+
+            ['eventDate', 'startTime', 'endTime'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('change', function () {
+                    showFieldError(id, validateEventField(id, this.value));
+                    if (id === 'startTime' || id === 'endTime') validateTimes();
+                });
+                el.addEventListener('blur', function () {
+                    showFieldError(id, validateEventField(id, this.value));
+                    if (id === 'startTime' || id === 'endTime') validateTimes();
+                });
+            });
+
+            document.getElementById('city').addEventListener('change', function () {
+                if (!isPopulating) showFieldError('city', this.value ? '' : 'City is required.');
+            });
+
+            document.getElementById('featureImage').addEventListener('change', function () {
+                validateFileInput('featureImage');
+            });
+
+            document.getElementById('extraImages').addEventListener('change', function () {
+                validateFileInput('extraImages');
+            });
+        }
+
+        
+        const _originalPopulateForm = populateForm;
+        populateForm = async function (event) {
+            isPopulating = true;
+            await _originalPopulateForm(event);
+            isPopulating = false;
+            attachValidationListeners();
+            loadAllEventSlugs();
+        };
+    </script>
+</body>
+</html>
