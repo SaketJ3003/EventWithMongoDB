@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'graphene_django',
     'graphql_jwt.refresh_token',
+    'cloudinary_storage',
+    'cloudinary',
     'event',
     'admin_panel',
 ]
@@ -207,15 +209,31 @@ WHITENOISE_USE_FINDERS = True
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Email Configuration - Reload
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+# Cloudinary — persistent image storage for production.
+# Set CLOUDINARY_URL in Railway env vars (format: cloudinary://key:secret@cloud_name).
+# Falls back to local MEDIA_ROOT storage when not set (localhost dev).
+CLOUDINARY_URL = config('CLOUDINARY_URL', default='')
+if CLOUDINARY_URL:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    CLOUDINARY_STORAGE = {
+        'CLOUDINARY_URL': CLOUDINARY_URL,
+    }
 
-DEFAULT_FROM_EMAIL = 'noreply@eventmanagement.com'
+# Email Configuration
+# Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in Railway environment variables.
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+else:
+    # No credentials set — log emails to console so booking still succeeds
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@eventmanagement.com')
 
 # Site URL for invoice links
 SITE_URL = config('SITE_URL', default='http://localhost:8000')
