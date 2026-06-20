@@ -17,37 +17,37 @@ class CloudinaryStorage(Storage):
     """
 
     def _get_public_id(self, name):
-        """Convert file path to cloudinary public_id (strip extension)."""
+        """Convert file path to cloudinary public_id (strip extension for images)."""
+        # Normalize slashes
+        name = name.replace('\\', '/')
         root, ext = os.path.splitext(name)
-        return root.replace('\\', '/')
-
-    def _upload(self, name, content):
-        import cloudinary.uploader
-        public_id = self._get_public_id(name)
-        content.seek(0)
-        result = cloudinary.uploader.upload(
-            content,
-            public_id=public_id,
-            overwrite=True,
-            resource_type='auto',
-        )
-        return result
+        return root
 
     def _open(self, name, mode='rb'):
-        import cloudinary
         import urllib.request
-        url = cloudinary.CloudinaryImage(self._get_public_id(name)).build_url()
-        with urllib.request.urlopen(url) as resp:
+        file_url = self.url(name)
+        with urllib.request.urlopen(file_url) as resp:
             return ContentFile(resp.read(), name=name)
 
     def _save(self, name, content):
-        self._upload(name, content)
+        import cloudinary.uploader
+        public_id = self._get_public_id(name)
+        content.seek(0)
+        cloudinary.uploader.upload(
+            content,
+            public_id=public_id,
+            overwrite=True,
+            resource_type='image',
+        )
         return name
 
     def delete(self, name):
         import cloudinary.uploader
         try:
-            cloudinary.uploader.destroy(self._get_public_id(name), resource_type='image')
+            cloudinary.uploader.destroy(
+                self._get_public_id(name),
+                resource_type='image'
+            )
         except Exception:
             pass
 
@@ -61,7 +61,9 @@ class CloudinaryStorage(Storage):
 
     def url(self, name):
         import cloudinary
-        return cloudinary.CloudinaryImage(self._get_public_id(name)).build_url(secure=True)
+        public_id = self._get_public_id(name)
+        # Build a secure HTTPS URL
+        return f"https://res.cloudinary.com/{cloudinary.config().cloud_name}/image/upload/{public_id}"
 
     def size(self, name):
         import cloudinary.api
@@ -72,5 +74,5 @@ class CloudinaryStorage(Storage):
             return 0
 
     def get_available_name(self, name, max_length=None):
-        # Cloudinary handles overwriting by public_id; just return name as-is
+        # Cloudinary handles overwriting by public_id — return name as-is
         return name

@@ -227,13 +227,13 @@ if CLOUDINARY_URL:
         api_secret=_api_secret,
         secure=True
     )
-    # Django 6.0+ uses STORAGES dict
+    # Django 6.0+ uses STORAGES dict (only override media, not staticfiles)
     STORAGES = {
         'default': {
             'BACKEND': 'event.cloudinary_storage.CloudinaryStorage',
         },
         'staticfiles': {
-            'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
         },
     }
 
