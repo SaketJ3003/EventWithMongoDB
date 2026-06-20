@@ -116,10 +116,8 @@ class EventImagesType(DjangoObjectType):
         fields = ('id', 'image', 'created_at', 'updated_at')
 
     def resolve_image(self, info):
-        if not self.image:
-            return None
-        request = info.context
-        return request.build_absolute_uri(f'/media/{self.image.name}')
+        # Returns base64 data URL string stored in MongoDB
+        return self.image or None
 
 
 class EventType(DjangoObjectType):
@@ -138,10 +136,8 @@ class EventType(DjangoObjectType):
         )
 
     def resolve_feature_image(self, info):
-        if not self.feature_image:
-            return None
-        request = info.context
-        return request.build_absolute_uri(f'/media/{self.feature_image.name}')
+        # Returns base64 data URL string stored in MongoDB
+        return self.feature_image or None
 
     def resolve_extra_images(self, info):
         return self.extraImages.all()

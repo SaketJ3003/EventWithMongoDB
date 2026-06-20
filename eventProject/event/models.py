@@ -48,7 +48,8 @@ class EventTag(models.Model):
 
 
 class EventImages(models.Model):
-    image = models.ImageField(upload_to='events/extra-images/')
+    # Stored as a base64 data URL string (e.g. "data:image/jpeg;base64,...")
+    image = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -119,7 +120,8 @@ class City(models.Model):
 class Event(models.Model):
     title = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, blank=True)
-    feature_image = models.ImageField(upload_to='events/', blank=True, null=True)
+    # Stored as a base64 data URL string (e.g. "data:image/jpeg;base64,...")
+    feature_image = models.TextField(blank=True, null=True, default='')
     category = models.ManyToManyField(Category, related_name='events')
     tags = models.ManyToManyField(EventTag, related_name='events', blank=True)
     extraImages = models.ManyToManyField(EventImages, related_name='events', blank=True)

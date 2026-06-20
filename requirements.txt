@@ -10,4 +10,3 @@ qrcode[pil]>=7.4.0
 gunicorn>=21.0.0
 whitenoise>=6.6.0
 python-decouple>=3.8
-cloudinary>=1.36.0
