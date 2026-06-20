@@ -813,24 +813,40 @@ class BookTicketsMutation(graphene.Mutation):
         ticket.available_quantity -= quantity
         ticket.save()
         
-        # Send booking confirmation email
+        # Send booking confirmation email asynchronously to prevent timeout
         try:
-            from .services.email_service import send_booking_confirmation_email
-            from .services.invoice_service import save_invoice_to_file
-            import os
-            from django.conf import settings
+            import threading
             
-            # Generate and save invoice
-            invoice_filename = f"invoice_{booking_reference}.pdf"
-            invoice_dir = os.path.join(settings.MEDIA_ROOT, 'invoices')
-            invoice_path = os.path.join(invoice_dir, invoice_filename)
-            save_invoice_to_file(booking, invoice_path)
+            def process_booking_email(booking_obj, reference):
+                try:
+                    from .services.email_service import send_booking_confirmation_email
+                    from .services.invoice_service import save_invoice_to_file
+                    import os
+                    from django.conf import settings
+                    
+                    # Generate and save invoice
+                    invoice_filename = f"invoice_{reference}.pdf"
+                    invoice_dir = os.path.join(settings.MEDIA_ROOT, 'invoices')
+                    invoice_path = os.path.join(invoice_dir, invoice_filename)
+                    save_invoice_to_file(booking_obj, invoice_path)
+                    
+                    send_booking_confirmation_email(booking_obj, invoice_pdf=invoice_path)
+                except Exception as inner_e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Error in background email task: {str(inner_e)}")
             
-            send_booking_confirmation_email(booking, invoice_pdf=invoice_path)
+            email_thread = threading.Thread(
+                target=process_booking_email,
+                args=(booking, booking_reference)
+            )
+            email_thread.daemon = True
+            email_thread.start()
+            
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Error sending booking email: {str(e)}")
+            logger.error(f"Error initiating booking email thread: {str(e)}")
         
         download_link = f"/invoice/{booking_reference}/download/"
         
