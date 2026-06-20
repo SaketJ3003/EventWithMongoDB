@@ -1,1 +1,1 @@
-web: cd eventProject && gunicorn eventProject.wsgi --log-file -
+web: cd eventProject && gunicorn eventProject.wsgi --bind 0.0.0.0:$PORT --log-file -
