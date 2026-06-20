@@ -170,6 +170,19 @@ REST_FRAMEWORK = {
     ],
 }
 
+# Cache — in-process memory cache, no external service needed.
+# TTL 300 s (5 min) for public event data; invalidated on every write mutation.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'eventproject-cache',
+        'TIMEOUT': 300,          # 5 minutes
+        'OPTIONS': {
+            'MAX_ENTRIES': 500,
+        },
+    }
+}
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
 

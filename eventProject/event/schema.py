@@ -13,8 +13,25 @@ from graphql_jwt.utils import get_payload, get_user_by_payload
 from graphql_jwt.exceptions import JSONWebTokenError
 from .models import Category, EventTag, Country, State, City, Event, UserToken, EventImages, Ticket, Booking
 from decimal import Decimal
+from django.core.cache import cache
 import uuid
 import secrets
+import hashlib
+import json
+
+# ---- Cache helpers ----
+CACHE_TTL = 300  # 5 minutes
+
+def _event_cache_key(name, **kwargs):
+    """Build a stable cache key from query name + params."""
+    raw = json.dumps(kwargs, sort_keys=True, default=str)
+    h   = hashlib.md5(raw.encode()).hexdigest()[:10]
+    return f'gql:event:{name}:{h}'
+
+def _bust_event_cache():
+    """Invalidate all event-related cache entries."""
+    cache.clear()
+
 
 
 def _revoke_all_tokens(user):
@@ -595,6 +612,7 @@ class CreateEventMutation(graphene.Mutation):
         if tag_ids:
             event.tags.set(EventTag.objects.filter(pk__in=tag_ids))
 
+        _bust_event_cache()
         return CreateEventMutation(success=True, message='Event created.', event=event)
 
 class UpdateEventMutation(graphene.Mutation):
@@ -666,6 +684,7 @@ class UpdateEventMutation(graphene.Mutation):
             event.tags.set(EventTag.objects.filter(pk__in=tag_ids))
         if remove_extra_image_ids:
             event.extraImages.filter(pk__in=remove_extra_image_ids).delete()
+        _bust_event_cache()
         return UpdateEventMutation(success=True, message='Event updated.', event=event)
 
 
@@ -682,6 +701,7 @@ class DeleteEventMutation(graphene.Mutation):
             Event.objects.get(pk=id).delete()
         except Event.DoesNotExist:
             return DeleteEventMutation(success=False, message='Event not found.')
+        _bust_event_cache()
         return DeleteEventMutation(success=True, message='Event deleted.')
 
 
@@ -1066,11 +1086,20 @@ class Query(graphene.ObjectType):
         return City.objects.filter(state_id=state_id)
 
     def resolve_all_events(self, info):
-        return Event.objects.all().order_by('id')
+        key = _event_cache_key('all_events')
+        result = cache.get(key)
+        if result is None:
+            result = list(Event.objects.all().order_by('id'))
+            cache.set(key, result, CACHE_TTL)
+        return result
 
     def resolve_event_by_id(self, info, id):
         try:
-            event = Event.objects.get(pk=id)
+            key = _event_cache_key('event_by_id', id=str(id))
+            event = cache.get(key)
+            if event is None:
+                event = Event.objects.get(pk=id)
+                cache.set(key, event, CACHE_TTL)
             event.views_count += 1
             event.save()
             return event
@@ -1079,22 +1108,40 @@ class Query(graphene.ObjectType):
 
     def resolve_event_by_slug(self, info, slug):
         try:
-            event = Event.objects.get(slug=slug)
+            key = _event_cache_key('event_by_slug', slug=slug)
+            event = cache.get(key)
+            if event is None:
+                event = Event.objects.get(slug=slug)
+                cache.set(key, event, CACHE_TTL)
             event.views_count += 1
             event.save()
-
             return event
         except Event.DoesNotExist:
             return None
 
     def resolve_events_by_category(self, info, category_id):
-        return Event.objects.filter(category__id=category_id)
+        key = _event_cache_key('events_by_category', category_id=str(category_id))
+        result = cache.get(key)
+        if result is None:
+            result = list(Event.objects.filter(category__id=category_id))
+            cache.set(key, result, CACHE_TTL)
+        return result
 
     def resolve_events_by_tag(self, info, tag_id):
-        return Event.objects.filter(tags__id=tag_id)
+        key = _event_cache_key('events_by_tag', tag_id=str(tag_id))
+        result = cache.get(key)
+        if result is None:
+            result = list(Event.objects.filter(tags__id=tag_id))
+            cache.set(key, result, CACHE_TTL)
+        return result
 
     def resolve_active_events(self, info):
-        return Event.objects.filter(is_active=True)
+        key = _event_cache_key('active_events')
+        result = cache.get(key)
+        if result is None:
+            result = list(Event.objects.filter(is_active=True))
+            cache.set(key, result, CACHE_TTL)
+        return result
 
     def resolve_paginated_categories(self, info, page=1, page_size=10, search=None):
         admin_required(info)
@@ -1148,15 +1195,27 @@ class Query(graphene.ObjectType):
         return PaginatedCityResult(results=list(p), total_count=paginator.count, num_pages=paginator.num_pages, current_page=p.number)
 
     def resolve_paginated_active_events(self, info, page=1, page_size=10, search=None):
+        key = _event_cache_key('paginated_active_events', page=page, page_size=page_size, search=search or '')
+        cached = cache.get(key)
+        if cached is not None:
+            return cached
         qs = Event.objects.filter(is_active=True).order_by('event_date')
         if search:
             qs = qs.filter(title__icontains=search)
         paginator = Paginator(qs, page_size)
         p = paginator.get_page(page)
-        return PaginatedEventResult(results=list(p), total_count=paginator.count, num_pages=paginator.num_pages, current_page=p.number)
+        result = PaginatedEventResult(results=list(p), total_count=paginator.count, num_pages=paginator.num_pages, current_page=p.number)
+        cache.set(key, result, CACHE_TTL)
+        return result
 
     def resolve_paginated_events(self, info, page=1, page_size=10, search=None, category_id=None, tag_id=None, status=None):
         admin_required(info)
+        key = _event_cache_key('paginated_events', page=page, page_size=page_size,
+                               search=search or '', category_id=str(category_id or ''),
+                               tag_id=str(tag_id or ''), status=status or '')
+        cached = cache.get(key)
+        if cached is not None:
+            return cached
         qs = Event.objects.all().order_by('id')
         if search:
             qs = qs.filter(title__icontains=search) | Event.objects.filter(slug__icontains=search)
@@ -1170,7 +1229,9 @@ class Query(graphene.ObjectType):
             qs = qs.filter(is_active=False)
         paginator = Paginator(qs.distinct(), page_size)
         p = paginator.get_page(page)
-        return PaginatedEventResult(results=list(p), total_count=paginator.count, num_pages=paginator.num_pages, current_page=p.number)
+        result = PaginatedEventResult(results=list(p), total_count=paginator.count, num_pages=paginator.num_pages, current_page=p.number)
+        cache.set(key, result, CACHE_TTL)
+        return result
 
     def resolve_ticket_by_event_id(self, info, event_id):
         try:
