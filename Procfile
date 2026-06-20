@@ -1,1 +1,1 @@
-web: cd eventProject && gunicorn eventProject.wsgi --bind 0.0.0.0:$PORT --log-file -
+web: cd eventProject && python manage.py collectstatic --noinput && gunicorn eventProject.wsgi --bind 0.0.0.0:$PORT --workers 2 --log-file -
