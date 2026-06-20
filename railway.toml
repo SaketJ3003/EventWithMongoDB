@@ -1,0 +1,7 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "cd eventProject && gunicorn eventProject.wsgi --log-file -"
+healthcheckPath = "/"
+restartPolicyType = "on_failure"
