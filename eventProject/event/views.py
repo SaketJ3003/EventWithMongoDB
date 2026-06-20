@@ -36,15 +36,19 @@ class FeatureImageUploadView(APIView):
 
         serializer = FeatureImageSerializer(event, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
-            if event.feature_image:
-                event.feature_image.delete(save=False)
+            # feature_image is now a TextField (base64 string) — no .delete() needed
             serializer.save()
-            response_serializer = FeatureImageSerializer(event, context={'request': request})
+            # Re-fetch to get updated value
+            event.refresh_from_db()
             return Response(
                 {
                     'success': True,
                     'message': 'Feature image uploaded successfully.',
-                    'data': response_serializer.data,
+                    'data': {
+                        'id': str(event.pk),
+                        'title': event.title,
+                        'feature_image_url': event.feature_image or None,
+                    },
                 },
                 status=status.HTTP_200_OK
             )
@@ -52,6 +56,7 @@ class FeatureImageUploadView(APIView):
             {'success': False, 'errors': serializer.errors},
             status=status.HTTP_400_BAD_REQUEST
         )
+
 
 
 class ExtraImagesUploadView(APIView):
@@ -67,8 +72,12 @@ class ExtraImagesUploadView(APIView):
                 {'success': False, 'message': 'Event not found.'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        images = [
+            {'id': str(img.pk), 'image_url': img.image or None}
+            for img in event.extraImages.all()
+        ]
         return Response(
-            {'success': True, 'data': ExtraImagesResponseSerializer(event, context={'request': request}).data},
+            {'success': True, 'data': {'id': str(event.pk), 'title': event.title, 'extra_images': images}},
             status=status.HTTP_200_OK
         )
 
@@ -95,7 +104,7 @@ class ExtraImagesUploadView(APIView):
             if serializer.is_valid():
                 img_obj = serializer.save()
                 event.extraImages.add(img_obj)
-                created.append(serializer.data)
+                created.append({'id': str(img_obj.pk), 'image_url': img_obj.image or None})
             else:
                 errors.append({f.name: serializer.errors})
 
@@ -114,7 +123,7 @@ class ExtraImagesUploadView(APIView):
             {
                 'success': True,
                 'message': f'{len(created)} image(s) uploaded successfully.',
-                'data': ExtraImagesResponseSerializer(event, context={'request': request}).data,
+                'data': created,
             },
             status=status.HTTP_201_CREATED
         )
