@@ -1,167 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Events</title>
-    <link href="/static/css/style.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — EventHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
 </head>
-<body class="bg-white text-gray-900 font-sans">
-    <nav class="border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
-            <h1 class="text-3xl font-mono tracking-tight"><a href="/events/" class="hover:text-gray-600 transition">EVENTS</a></h1>
-        </div>
-    </nav>
-    
-    <div class="max-w-7xl mx-auto px-6 py-12">
-        <div class="flex items-center justify-center min-h-[calc(100vh-200px)]">
-            <div class="w-full max-w-md bg-gray-50 border border-gray-200 rounded-3xl shadow-md p-8">
-                <h2 class="text-2xl font-bold mb-6 text-center text-gray-900">Login to your Account</h2>
-                
-                <div id="successMessage" class="hidden mb-4 p-4 bg-green-50 border border-green-200 rounded-3xl">
-                    <p class="text-green-800 text-sm" id="successText"></p>
-                </div>
-                
-                <div id="errorMessage" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-3xl">
-                    <p class="text-red-800 text-sm" id="errorText"></p>
-                </div>
+<body>
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="/events/" class="nav-logo">EventHub</a>
+  </div>
+</nav>
 
-                <form id="loginForm" class="space-y-4">
-                    {% csrf_token %}
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-                            Email <span class="text-red-500">*</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            id="email" 
-                            name="email"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter your email"
-                        >
-                        <small class="text-red-500 hidden" id="email-error"></small>
-                    </div>
+<div class="auth-page">
+  <div class="auth-card">
+    <!-- Logo mark -->
+    <div style="width:48px;height:48px;background:var(--grad-hero);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:24px">🎟</div>
+    <h1 class="auth-title">Welcome back</h1>
+    <p class="auth-sub">Sign in to your EventHub account</p>
 
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-                            Password <span class="text-red-500">*</span>
-                        </label>
-                        <input 
-                            type="password" 
-                            id="password" 
-                            name="password"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter your password"
-                        >
-                        <small class="text-red-500 hidden" id="password-error"></small>
-                    </div>
-
-                    <button 
-                        type="submit" 
-                        id="submitBtn"
-                        class="w-full mt-6 px-4 py-2 bg-blue-600 text-white font-medium rounded-3xl hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    >
-                        Login
-                    </button>
-                </form>
-
-                <p class="text-center text-sm text-gray-600 mt-6">
-                    Don't have an account? 
-                    <a href="/signup/" class="text-blue-600 hover:underline">Sign up here</a>
-                </p>
-            </div>
-        </div>
+    <div id="alertSuccess" class="alert alert-success" style="display:none">
+      <span class="alert-icon">✓</span><span id="alertSuccessText"></span>
+    </div>
+    <div id="alertError" class="alert alert-error" style="display:none">
+      <span class="alert-icon">✕</span><span id="alertErrorText"></span>
     </div>
 
-    <script>
-        async function graphqlFetch(query, variables = {}, token = null) {
-            const headers = { 'Content-Type': 'application/json' };
-            if (token) headers['Authorization'] = `JWT ${token}`;
-            const res = await fetch('/graphql/', {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ query, variables })
-            });
-            return res.json();
-        }
+    <form id="loginForm" style="display:flex;flex-direction:column;gap:20px">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="email">Email <span>*</span></label>
+        <input type="email" id="email" name="email" class="form-input" placeholder="you@example.com" autocomplete="email" required>
+        <small class="form-error" id="email-error" style="display:none"></small>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">Password <span>*</span></label>
+        <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" autocomplete="current-password" required>
+        <small class="form-error" id="password-error" style="display:none"></small>
+      </div>
+      <button type="submit" id="submitBtn" class="btn btn-primary btn-wide btn-lg" style="margin-top:4px">Sign In</button>
+    </form>
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+    <div class="auth-footer">Don't have an account? <a href="/signup/">Create one free</a></div>
+  </div>
+</div>
 
-            document.querySelectorAll('[id$="-error"]').forEach(el => {
-                el.classList.add('hidden');
-                el.textContent = '';
-            });
+<script>
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const errEl = document.getElementById('alertError'), sucEl = document.getElementById('alertSuccess');
+    errEl.style.display = 'none'; sucEl.style.display = 'none';
+    btn.disabled = true; btn.textContent = 'Signing in...';
 
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Logging in...';
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
 
-            const email    = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            try {
-                const data = await graphqlFetch(`
-                    mutation Login($email: String!, $password: String!) {
-                        login(email: $email, password: $password) {
-                            success
-                            message
-                            accessToken
-                            refreshToken
-                            user {
-                                id
-                                username
-                                isStaff
-                                isSuperuser
-                            }
-                        }
-                    }
-                `, { email, password });
-
-                console.log('GraphQL response:', data);
-
-                if (data.errors) {
-                    document.getElementById('errorText').textContent = data.errors[0].message;
-                    document.getElementById('errorMessage').classList.remove('hidden');
-                    return;
-                }
-
-                const result = data.data.login;
-
-                if (result.success) {
-                    localStorage.setItem('access_token', result.accessToken);
-                    localStorage.setItem('refresh_token', result.refreshToken);
-
-                    document.getElementById('email').value = '';
-                    document.getElementById('password').value = '';
-
-                    const successMsg  = document.getElementById('successMessage');
-                    const successText = document.getElementById('successText');
-                    const isAdmin = result.user && (result.user.isStaff || result.user.isSuperuser);
-
-                    successText.textContent = isAdmin
-                        ? 'Login successful! Redirecting to Admin Dashboard...'
-                        : 'Login successful! Redirecting...';
-                    successMsg.classList.remove('hidden');
-
-                    setTimeout(() => {
-                        window.location.href = isAdmin
-                            ? '/admin-panel/dashboard/'
-                            : '/events/';
-                    }, 1000);
-                } else {
-                    document.getElementById('errorText').textContent = result.message || 'Login failed.';
-                    document.getElementById('errorMessage').classList.remove('hidden');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('errorText').textContent = 'Network error. Please try again.';
-                document.getElementById('errorMessage').classList.remove('hidden');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Login';
+    try {
+      const res = await fetch('/graphql/', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ query:`
+          mutation Login($email:String!,$password:String!){
+            login(email:$email,password:$password){
+              success message accessToken refreshToken user{id username isStaff isSuperuser}
             }
-        });
-    </script>
+          }`, variables:{email, password}
+        })
+      });
+      const d = await res.json();
+      if (d.errors) { showErr(d.errors[0].message); return; }
+      const r = d.data.login;
+      if (r.success) {
+        localStorage.setItem('access_token',  r.accessToken);
+        localStorage.setItem('refresh_token', r.refreshToken);
+        const isAdmin = r.user && (r.user.isStaff || r.user.isSuperuser);
+        document.getElementById('alertSuccessText').textContent = isAdmin ? 'Login successful! Redirecting to dashboard…' : 'Login successful! Redirecting…';
+        sucEl.style.display = 'flex';
+        setTimeout(() => window.location.href = isAdmin ? '/admin-panel/dashboard/' : '/events/', 900);
+      } else {
+        showErr(r.message || 'Login failed. Please check your credentials.');
+      }
+    } catch(err) { showErr('Network error. Please try again.'); }
+    finally { btn.disabled=false; btn.textContent='Sign In'; }
+
+    function showErr(msg) {
+      document.getElementById('alertErrorText').textContent = msg;
+      errEl.style.display='flex';
+    }
+  });
+</script>
 </body>
 </html>

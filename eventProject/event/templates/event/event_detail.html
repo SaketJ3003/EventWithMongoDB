@@ -1,631 +1,302 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Details</title>
-    <link href="/static/css/style.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Details — EventHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
 </head>
-<body class="bg-white text-gray-900 font-sans">
-    <nav class="border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
-            <h1 class="text-3xl font-mono tracking-tight"><a href="/events/" class="hover:text-gray-600 transition">EVENTS</a></h1>
-            <div class="space-x-4 flex items-center">
-                <a href="/admin-panel/dashboard/" class="hidden text-sm text-blue-600 hover:text-blue-900 font-medium" id="adminDashboardBtn">Admin Dashboard</a>
-                <a href="/login/" class="text-sm text-gray-600 hover:text-gray-900">Login</a>
-                <a href="/signup/" class="text-sm text-gray-600 hover:text-gray-900">Sign Up</a>
-                <button onclick="logout()" class="hidden text-sm text-red-600 hover:text-red-900" id="logoutBtn">Logout</button>
-            </div>
-        </div>
-    </nav>
+<body>
 
-    <div class="max-w-7xl mx-auto px-6 py-12">
-        <a href="/events/" class="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-8 font-medium">
-            <span class="text-2xl">←</span> 
-            <span>Back</span>
-        </a>
+<!-- Navigation -->
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="/events/" class="nav-logo">EventHub</a>
+    <div class="nav-links">
+      <a href="/admin-panel/dashboard/" class="nav-link nav-link-admin" id="adminDashboardBtn" style="display:none">⚡ Admin</a>
+      <a href="/login/" class="nav-link" id="loginLink">Login</a>
+      <a href="/signup/" class="nav-link-primary" id="signupLink">Sign Up</a>
+      <button onclick="logout()" class="nav-link nav-link-danger" id="logoutBtn" style="display:none">Sign Out</button>
+    </div>
+  </div>
+</nav>
 
-        <div id="loadingContainer" class="text-center py-16">
-            <p class="text-gray-500 text-lg">Loading event details...</p>
+<!-- Content -->
+<section class="section">
+  <div class="container">
+    <a href="/events/" class="back-btn">← Back to Events</a>
+
+    <!-- Skeleton -->
+    <div id="skeletonDetail">
+      <div class="skeleton" style="height:420px;border-radius:20px;margin-bottom:36px"></div>
+      <div class="skeleton skeleton-line-lg" style="width:60%;margin-bottom:12px"></div>
+      <div class="skeleton skeleton-line" style="width:40%;margin-bottom:48px"></div>
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:40px">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line" style="width:70%"></div>
         </div>
-        
-        <div id="eventContainer"></div>
+        <div class="skeleton" style="height:260px;border-radius:16px"></div>
+      </div>
     </div>
 
-    <script>
-        async function graphqlFetch(query, variables = {}, token = null) {
-            const headers = { 'Content-Type': 'application/json' };
-            if (token) headers['Authorization'] = `JWT ${token}`;
-            const res = await fetch('/graphql/', {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ query, variables })
-            });
-            return res.json();
-        }
+    <!-- Event content -->
+    <div id="eventContainer" style="display:none"></div>
+    <div id="errorContainer" style="display:none"></div>
+  </div>
+</section>
 
-        async function checkAuth() {
-            const accessToken = localStorage.getItem('access_token');
-            const loginLink        = document.querySelector('a[href="/login/"]');
-            const signupLink       = document.querySelector('a[href="/signup/"]');
-            const logoutBtn        = document.getElementById('logoutBtn');
-            const adminDashboardBtn = document.getElementById('adminDashboardBtn');
-
-            if (accessToken) {
-                if (loginLink)  loginLink.style.display  = 'none';
-                if (signupLink) signupLink.style.display = 'none';
-                if (logoutBtn)  logoutBtn.classList.remove('hidden');
-
-                try {
-                    const data = await graphqlFetch(`
-                        query { me { id isStaff isSuperuser } }
-                    `, {}, accessToken);
-                    const user = data.data && data.data.me;
-                    if (user && (user.isStaff || user.isSuperuser)) {
-                        if (adminDashboardBtn) adminDashboardBtn.classList.remove('hidden');
-                    }
-                } catch (error) {
-                    console.error('Error checking user status:', error);
-                }
-            } else {
-                if (loginLink)  loginLink.style.display  = 'inline';
-                if (signupLink) signupLink.style.display = 'inline';
-                if (logoutBtn)  logoutBtn.classList.add('hidden');
-                if (adminDashboardBtn) adminDashboardBtn.classList.add('hidden');
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            location.reload();
-        }
-
-        async function loadEventDetail() {
-            const slug = window.location.pathname.split('/').filter(Boolean).pop();
-
-            try {
-                const accessToken = localStorage.getItem('access_token');
-                const data = await graphqlFetch(`
-                    query EventDetail($slug: String!) {
-                        eventBySlug(slug: $slug) {
-                            id
-                            title
-                            slug
-                            featureImage
-                            shortDescription
-                            longDescription
-                            eventDate
-                            startTime
-                            endTime
-                            isActive
-                            viewsCount
-                            venue
-                            country  { name }
-                            state    { name }
-                            city     { name }
-                            category { name }
-                            tags     { name }
-                            extraImages { image }
-                        }
-                    }
-                `, { slug }, accessToken || null);
-
-                console.log('GraphQL event data:', data);
-
-                const container  = document.getElementById('eventContainer');
-                const loadingDiv = document.getElementById('loadingContainer');
-
-                if (data.errors) {
-                    loadingDiv.innerHTML = `<p class="text-red-500 text-lg">Error: ${data.errors[0].message}</p>`;
-                    return;
-                }
-
-                const event = data.data.eventBySlug;
-
-                if (!event) {
-                    loadingDiv.innerHTML = '<p class="text-gray-500 text-lg">Event not found.</p>';
-                    return;
-                }
-
-                loadingDiv.style.display = 'none';
-                document.title = (event.title || 'Event') + ' - Event Details';
-
-                container.innerHTML = `
-                    <div class="max-w-6xl">
-                        ${!event.isActive ? '<div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-3xl"><p class="text-red-800"><strong>Status:</strong> This event is currently inactive and only visible to administrators.</p></div>' : ''}
-                        <div class="mb-12">
-                            <div class="w-full h-80 md:h-96 bg-gray-900 rounded-3xl overflow-hidden shadow-lg mb-8">
-                                ${event.featureImage
-                                    ? `<img src="${event.featureImage}" alt="${event.title}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.src='/static/placeholder.png'">`
-                                    : '<div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center"><span class="text-gray-400 text-lg">No image available</span></div>'}
-                            </div>
-
-                            <div class="space-y-4">
-                                <h1 class="text-5xl lg:text-6xl font-light text-gray-900 tracking-tight">${event.title || 'Event'}</h1>
-                                <div class="flex flex-wrap gap-6 pt-4">
-                                    <div class="flex items-center gap-3">
-                                        <div>
-                                            <div class="text-xs text-gray-500 uppercase">Date</div>
-                                            <div class="font-medium text-gray-900">
-                                                ${event.eventDate
-                                                    ? new Date(event.eventDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                                                    : 'N/A'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div>
-                                            <div class="text-xs text-gray-500 uppercase">Views</div>
-                                            <div class="font-medium text-gray-900">${event.viewsCount || 0}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                            <div class="lg:col-span-2 space-y-12">
-                                <div>
-                                    <div class="flex items-center gap-3 mb-6">
-                                        <div class="w-1 h-6 bg-gray-900"></div>
-                                        <h2 class="text-lg font-semibold text-gray-900 uppercase tracking-wider">About Event</h2>
-                                    </div>
-                                    <p class="text-gray-700 leading-relaxed text-base">${event.longDescription || 'No description available'}</p>
-                                </div>
-
-                                <div class="bg-white border border-gray-200 rounded-3xl p-6 hover:border-gray-400 transition-all duration-300 hover:shadow-lg">
-                                    <div class="flex items-center gap-3 mb-6">
-                                        <div class="w-1 h-6 bg-gray-900"></div>
-                                        <h2 class="text-lg font-semibold text-gray-900 uppercase tracking-wider">Event Location</h2>
-                                    </div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Venue</div>
-                                            <div class="text-gray-900 text-lg font-medium">${event.venue || 'N/A'}</div>
-                                        </div>
-                                        <div>
-                                            <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">City</div>
-                                            <div class="text-gray-900 text-lg font-medium">${event.city?.name || ''}</div>
-                                        </div>
-                                        <div>
-                                            <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">State</div>
-                                            <div class="text-gray-900 text-lg font-medium">${event.state?.name || ''}</div>
-                                        </div>
-                                        <div>
-                                            <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Country</div>
-                                            <div class="text-gray-900 text-lg font-medium">${event.country?.name || 'N/A'}</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                ${event.extraImages && event.extraImages.length > 0 ? `
-                                    <div>
-                                        <div class="flex items-center gap-3 mb-8">
-                                            <div class="w-1 h-6 bg-gray-900"></div>
-                                            <h2 class="text-lg font-semibold text-gray-900 uppercase tracking-wider">Gallery</h2>
-                                        </div>
-                                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                            ${event.extraImages.map(img => `
-                                                <div class="overflow-hidden rounded-3xl shadow-md">
-                                                    <div class="aspect-square bg-gray-100 overflow-hidden">
-                                                        <img src="${img.image}" alt="Event Gallery" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onerror="this.src='/static/placeholder.png'">
-                                                    </div>
-                                                </div>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                ` : ''}
-                            </div>
-
-                            <div class="space-y-6">
-                                <div class="bg-white border border-gray-200 rounded-3xl p-6 hover:border-gray-400 transition-all duration-300 hover:shadow-lg">
-                                    <h3 class="text-base font-semibold text-gray-900 uppercase tracking-wider mb-6">Schedule</h3>
-                                    <div class="space-y-5">
-                                        <div class="pb-4 border-b border-gray-100">
-                                            <div class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">Start Time</div>
-                                            <div class="text-lg font-medium text-gray-900">
-                                                ${event.startTime
-                                                    ? new Date('1970-01-01T' + event.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-                                                    : 'N/A'}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">End Time</div>
-                                            <div class="text-lg font-medium text-gray-900">
-                                                ${event.endTime
-                                                    ? new Date('1970-01-01T' + event.endTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-                                                    : 'N/A'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                ${event.category && event.category.length > 0 ? `
-                                    <div class="bg-white border border-gray-200 rounded-3xl p-6 hover:border-gray-400 transition-all duration-300 hover:shadow-lg">
-                                        <h3 class="text-base font-semibold text-gray-900 uppercase tracking-wider mb-4">Category</h3>
-                                        <div class="flex flex-wrap gap-2">
-                                            ${event.category.map(cat => `
-                                                <span class="inline-flex items-center bg-gray-100 text-gray-700 px-4 py-2 rounded-3xl text-sm font-medium">${cat.name}</span>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                ` : ''}
-
-                                ${event.tags && event.tags.length > 0 ? `
-                                    <div class="bg-white border border-gray-200 rounded-3xl p-6 hover:border-gray-400 transition-all duration-300 hover:shadow-lg">
-                                        <h3 class="text-base font-semibold text-gray-900 uppercase tracking-wider mb-4">Tags</h3>
-                                        <div class="flex flex-wrap gap-2">
-                                            ${event.tags.map(tag => `
-                                                <span class="capitalize inline-flex items-center bg-gray-900 text-white px-3 py-1.5 rounded-3xl text-xs font-medium">${tag.name}</span>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                ` : ''}
-
-                                <div id="bookingSection" class="bg-white border border-gray-200 rounded-3xl p-6 hover:border-gray-400 transition-all duration-300 hover:shadow-lg">
-                                    <h3 class="text-base font-semibold text-gray-900 uppercase tracking-wider mb-6">Ticket Booking</h3>
-                                    <div id="ticketContent">
-                                        <p class="text-gray-600 mb-4">Loading ticket information...</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="adminActions" class="hidden mt-12 pt-8 border-t border-gray-200">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4 uppercase tracking-wider">Admin Actions</h3>
-                            <div class="flex flex-wrap gap-4">
-                                <button onclick="deleteEvent('${event.id}')" class="px-6 py-3 bg-red-600 text-white rounded-3xl hover:bg-red-700 transition font-medium">Delete Event</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                await checkAdminAndShowActions();
-                await loadTicketInfo(event.id);
-
-            } catch (error) {
-                console.error('Error loading event:', error);
-                document.getElementById('loadingContainer').innerHTML = `<p class="text-red-500 text-lg">Error loading event: ${error.message}</p>`;
-            }
-        }
-
-        async function loadTicketInfo(eventId) {
-            const accessToken = localStorage.getItem('access_token');
-            const ticketContent = document.getElementById('ticketContent');
-            
-            try {
-                console.log('Loading ticket info for event:', eventId);
-                
-                const data = await graphqlFetch(`
-                    query TicketByEventId($eventId: ID!) {
-                        ticketByEventId(eventId: $eventId) {
-                            id
-                            price
-                            availableQuantity
-                        }
-                    }
-                `, { eventId }, accessToken || null);
-
-                console.log('Ticket response:', data);
-
-                if (data.errors) {
-                    console.error('GraphQL errors:', data.errors);
-                    ticketContent.innerHTML = '<p class="text-yellow-600 text-sm">⚠️ Ticket information unavailable. Error: ' + data.errors[0].message + '</p>';
-                    return;
-                }
-
-                const ticket = data.data && data.data.ticketByEventId;
-
-                if (!ticket) {
-                    console.warn('No ticket found for event:', eventId);
-                    ticketContent.innerHTML = `
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <p class="text-yellow-800 text-sm">💡 Tickets are not yet configured for this event.</p>
-                            <p class="text-xs text-yellow-700 mt-2">Please check back soon or contact the administrator.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                const isLoggedIn = accessToken !== null;
-                console.log('Is logged in:', isLoggedIn);
-                console.log('Ticket:', ticket);
-
-                ticketContent.innerHTML = `
-                    <div class="space-y-4">
-                        <div class="pb-4 border-b border-gray-100">
-                            <div class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">Price Per Ticket</div>
-                            <div class="text-2xl font-bold text-gray-900">₹${parseFloat(ticket.price).toFixed(2)}</div>
-                        </div>
-                        <div class="pb-4 border-b border-gray-100">
-                            <div class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">Available Tickets</div>
-                            <div class="text-lg font-medium text-gray-900">${ticket.availableQuantity} available</div>
-                        </div>
-                        <button 
-                            id="bookButton"
-                            onclick="${isLoggedIn ? `openBookingModal('${eventId}', '${ticket.price}')` : 'alert("Please log in to book tickets")'}"
-                            class="w-full px-6 py-3 bg-blue-600 text-white rounded-3xl hover:bg-blue-700 transition font-semibold cursor-pointer"
-                        >
-                            ${isLoggedIn ? 'Book Tickets' : 'Login to Book'}
-                        </button>
-                        ${!isLoggedIn ? '<p class="text-xs text-gray-600 text-center mt-2">Please <a href="/login/" class="text-blue-600 hover:underline">login</a> to book tickets.</p>' : ''}
-                    </div>
-                `;
-
-            } catch (error) {
-                console.error('Error loading ticket info:', error);
-                ticketContent.innerHTML = '<p class="text-red-600 text-sm">Error loading ticket information: ' + error.message + '</p>';
-            }
-        }
-
-        function openBookingModal(eventId, ticketPrice) {
-            console.log('openBookingModal called with:', { eventId, ticketPrice });
-            
-            const modal = document.getElementById('bookingModal');
-            if (!modal) {
-                console.error('Booking modal not found!');
-                return;
-            }
-            
-            try {
-                const priceNum = parseFloat(ticketPrice);
-                
-                if (!eventId || isNaN(priceNum)) {
-                    console.error('Invalid eventId or ticketPrice:', { eventId, ticketPrice });
-                    alert('Error: Invalid event or ticket information');
-                    return;
-                }
-                
-                console.log('Setting modal values:', { eventId, priceNum });
-                modal.classList.remove('hidden');
-                document.getElementById('modalEventId').value = eventId;
-                document.getElementById('modalTicketPrice').value = priceNum;
-                document.getElementById('quantityInput').textContent = '1';
-                document.getElementById('pricePerTicket').textContent = '₹' + priceNum.toFixed(2);
-                updateTotalPrice(priceNum);
-            } catch (error) {
-                console.error('Error in openBookingModal:', error);
-                alert('Error opening booking modal: ' + error.message);
-            }
-        }
-
-        function closeBookingModal() {
-            const modal = document.getElementById('bookingModal');
-            if (modal) {
-                modal.classList.add('hidden');
-            }
-        }
-
-        function updateTotalPrice(ticketPrice) {
-            try {
-                const quantity = parseInt(document.getElementById('quantityInput').textContent) || 1;
-                const price = parseFloat(ticketPrice);
-                
-                if (isNaN(price)) {
-                    console.error('Invalid ticket price:', ticketPrice);
-                    return;
-                }
-                
-                const total = (price * quantity).toFixed(2);
-                console.log('Updated total price:', { price, quantity, total });
-                document.getElementById('totalPrice').textContent = '₹' + total;
-            } catch (error) {
-                console.error('Error updating total price:', error);
-            }
-        }
-
-        function incrementQuantity() {
-            const quantityElement = document.getElementById('quantityInput');
-            let quantity = parseInt(quantityElement.textContent) || 1;
-            if (quantity < 10) {
-                quantity++;
-                quantityElement.textContent = quantity;
-                const ticketPrice = document.getElementById('modalTicketPrice').value;
-                updateTotalPrice(ticketPrice);
-            }
-        }
-
-        function decrementQuantity() {
-            const quantityElement = document.getElementById('quantityInput');
-            let quantity = parseInt(quantityElement.textContent) || 1;
-            if (quantity > 1) {
-                quantity--;
-                quantityElement.textContent = quantity;
-                const ticketPrice = document.getElementById('modalTicketPrice').value;
-                updateTotalPrice(ticketPrice);
-            }
-        }
-
-        async function confirmBooking(evt) {
-            const eventId = document.getElementById('modalEventId').value;
-            const quantity = parseInt(document.getElementById('quantityInput').textContent);
-            const ticketPrice = parseFloat(document.getElementById('modalTicketPrice').value);
-            const accessToken = localStorage.getItem('access_token');
-
-            if (!accessToken) {
-                alert('You must be logged in to book tickets');
-                return;
-            }
-
-            if (quantity <= 0) {
-                alert('Please select a valid quantity');
-                return;
-            }
-
-            const bookButton = evt && evt.target ? evt.target : document.querySelector('button[onclick*="confirmBooking"]');
-            if (bookButton) {
-                bookButton.disabled = true;
-                bookButton.textContent = 'Booking...';
-            }
-
-            try {
-                const data = await graphqlFetch(`
-                    mutation BookTickets($eventId: String!, $quantity: Int!) {
-                        bookTickets(eventId: $eventId, quantity: $quantity) {
-                            success
-                            message
-                            booking {
-                                id
-                                bookingReference
-                                totalPrice
-                                createdAt
-                            }
-                            downloadLink
-                        }
-                    }
-                `, { eventId: eventId, quantity }, accessToken);
-
-                console.log('Booking response:', data);
-
-                // Check for GraphQL errors
-                if (data.errors && data.errors.length > 0) {
-                    const errorMsg = data.errors.map(e => e.message).join(', ');
-                    console.error('GraphQL errors:', data.errors);
-                    alert('Booking error: ' + errorMsg);
-                    return;
-                }
-
-                const result = data.data && data.data.bookTickets;
-
-                if (result && result.success) {
-                    const booking = result.booking;
-                    alert(`Booking confirmed!\n\nBooking Reference: ${booking.bookingReference}\nTotal: ₹${booking.totalPrice}\n\nYou will receive a confirmation email shortly with your invoice.`);
-                    
-                    closeBookingModal();
-                    
-                    // Reload ticket info to update available quantity
-                    const eventSlug = window.location.pathname.split('/').filter(Boolean).pop();
-                    const eventData = await graphqlFetch(`
-                        query EventDetail($slug: String!) {
-                            eventBySlug(slug: $slug) {
-                                id
-                            }
-                        }
-                    `, { slug: eventSlug }, accessToken);
-                    
-                    if (eventData.data && eventData.data.eventBySlug) {
-                        await loadTicketInfo(eventData.data.eventBySlug.id);
-                    }
-                } else {
-                    const errorMessage = result && result.message ? result.message : 'Unknown booking error';
-                    console.error('Booking failed:', result);
-                    alert('Booking error: ' + errorMessage);
-                }
-            } catch (error) {
-                console.error('Error booking tickets:', error);
-                alert('Error booking tickets: ' + error.message);
-            } finally {
-                if (bookButton) {
-                    bookButton.disabled = false;
-                    bookButton.textContent = 'Confirm Booking';
-                }
-            }
-        }
-
-        async function checkAdminAndShowActions() {
-            const accessToken = localStorage.getItem('access_token');
-            if (!accessToken) return;
-
-            try {
-                const data = await graphqlFetch(`
-                    query { me { id isStaff isSuperuser } }
-                `, {}, accessToken);
-                const user = data.data && data.data.me;
-                if (user && (user.isStaff || user.isSuperuser)) {
-                    const adminActions = document.getElementById('adminActions');
-                    if (adminActions) adminActions.classList.remove('hidden');
-                }
-            } catch (error) {
-                console.error('Error checking admin status:', error);
-            }
-        }
-
-        async function deleteEvent(eventId) {
-            if (!confirm('Are you sure you want to delete this event?')) return;
-
-            const accessToken = localStorage.getItem('access_token');
-            if (!accessToken) { alert('You must be logged in to delete an event'); return; }
-
-            try {
-                const data = await graphqlFetch(`
-                    mutation DeleteEvent($id: ID!) {
-                        deleteEvent(id: $id) {
-                            success
-                            message
-                        }
-                    }
-                `, { id: eventId }, accessToken);
-
-                const result = data.data && data.data.deleteEvent;
-                if (result && result.success) {
-                    alert('Event deleted successfully');
-                    window.location.href = '/events/';
-                } else {
-                    alert('Error deleting event: ' + (result ? result.message : 'Unknown error'));
-                }
-            } catch (error) {
-                console.error('Error deleting event:', error);
-                alert('Error deleting event: ' + error.message);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            loadEventDetail();
-        });
-    </script>
-
-    <!-- Booking Modal -->
-    <div id="bookingModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target.id === 'bookingModal') closeBookingModal()">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold text-gray-900">Book Tickets</h2>
-                <button onclick="closeBookingModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-            </div>
-            
-            <form onsubmit="return false;">
-                <input type="hidden" id="modalEventId" value="">
-                <input type="hidden" id="modalTicketPrice" value="">
-                
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Number of Tickets</label>
-                        <div class="flex items-center gap-3">
-                            <button type="button" onclick="decrementQuantity()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold text-xl transition">−</button>
-                            <span id="quantityInput" class="flex-1 text-center text-lg font-semibold text-gray-900">1</span>
-                            <button type="button" onclick="incrementQuantity()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold text-xl transition">+</button>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-gray-600">Price per ticket:</span>
-                            <span class="text-gray-900 font-medium" id="pricePerTicket">-</span>
-                        </div>
-                        <div class="flex justify-between items-center pt-2 border-t border-gray-200">
-                            <span class="text-lg font-semibold text-gray-900">Total Amount:</span>
-                            <span class="text-2xl font-bold text-blue-600" id="totalPrice">-</span>
-                        </div>
-                    </div>
-                    
-                    <button 
-                        type="button" 
-                        onclick="confirmBooking(event)" 
-                        class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
-                    >
-                        Confirm Booking
-                    </button>
-                    <button 
-                        type="button" 
-                        onclick="closeBookingModal()" 
-                        class="w-full px-6 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition font-semibold"
-                    >
-                        Cancel
-                    </button>
-                </div>
-            </form>
-        </div>
+<!-- Booking Modal -->
+<div id="bookingModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Book Tickets</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
+    <input type="hidden" id="modalEventId">
+    <input type="hidden" id="modalTicketPrice">
+
+    <p class="label" style="margin-bottom:12px">Number of Tickets</p>
+    <div class="qty-control">
+      <button class="qty-btn" type="button" onclick="changeQty(-1)">−</button>
+      <span class="qty-value" id="quantityInput">1</span>
+      <button class="qty-btn" type="button" onclick="changeQty(1)">+</button>
+    </div>
+
+    <div class="modal-summary">
+      <div class="modal-summary-row"><span>Price per ticket</span><span id="pricePerTicket">—</span></div>
+      <div class="modal-summary-row"><span>Total Amount</span><strong id="totalPrice">—</strong></div>
+    </div>
+
+    <button type="button" class="btn btn-primary btn-wide" id="confirmBtn" onclick="confirmBooking()">Confirm Booking</button>
+    <button type="button" class="btn btn-ghost btn-wide" style="margin-top:10px" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<script>
+  function gql(query, vars={}, token=null) {
+    const h={'Content-Type':'application/json'};
+    if(token) h['Authorization']=`JWT ${token}`;
+    return fetch('/graphql/',{method:'POST',headers:h,body:JSON.stringify({query,variables:vars})}).then(r=>r.json());
+  }
+
+  async function checkAuth() {
+    const token=localStorage.getItem('access_token');
+    const loginEl=document.getElementById('loginLink'), signupEl=document.getElementById('signupLink');
+    const logoutEl=document.getElementById('logoutBtn'), adminEl=document.getElementById('adminDashboardBtn');
+    if(token){
+      if(loginEl) loginEl.style.display='none';
+      if(signupEl) signupEl.style.display='none';
+      if(logoutEl) logoutEl.style.display='inline-flex';
+      try{
+        const d=await gql('{ me { isStaff isSuperuser } }',{},token);
+        const u=d.data&&d.data.me;
+        if(u&&(u.isStaff||u.isSuperuser)) adminEl.style.display='inline-flex';
+      }catch(_){}
+    }
+  }
+  function logout(){localStorage.removeItem('access_token');localStorage.removeItem('refresh_token');location.reload();}
+
+  function fmt(date){if(!date)return'TBA';return new Date(date+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
+  function fmtTime(t){if(!t)return'TBA';return new Date('1970-01-01T'+t).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});}
+
+  async function loadEventDetail() {
+    const slug = window.location.pathname.split('/').filter(Boolean).pop();
+    const token = localStorage.getItem('access_token');
+    try {
+      const d = await gql(`
+        query($slug:String!){ eventBySlug(slug:$slug){
+          id title slug featureImage shortDescription longDescription
+          eventDate startTime endTime isActive viewsCount venue
+          country{name} state{name} city{name}
+          category{name} tags{name} extraImages{image}
+        }}
+      `, {slug}, token);
+
+      document.getElementById('skeletonDetail').style.display = 'none';
+
+      if(d.errors){ showError(d.errors[0].message); return; }
+      const ev = d.data.eventBySlug;
+      if(!ev){ showError('Event not found.'); return; }
+
+      document.title = ev.title + ' — EventHub';
+
+      const cats = ev.category&&ev.category.length ? ev.category.map(c=>`<span class="badge badge-purple">${c.name}</span>`).join('') : '';
+      const tags = ev.tags&&ev.tags.length       ? ev.tags.map(t=>`<span class="badge badge-dark">${t.name}</span>`).join('') : '';
+
+      const gallery = ev.extraImages&&ev.extraImages.length ? `
+        <div style="margin-top:48px">
+          <div class="section-label"><h2>Gallery</h2></div>
+          <div class="gallery">
+            ${ev.extraImages.map(img=>`<div class="gallery-item"><img src="${img.image}" alt="Gallery" loading="lazy"></div>`).join('')}
+          </div>
+        </div>` : '';
+
+      const heroImg = ev.featureImage
+        ? `<img src="${ev.featureImage}" alt="${ev.title}" style="width:100%;height:100%;object-fit:cover">`
+        : `<div style="display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text-4)"><span style="font-size:3rem">🎭</span><span>No image available</span></div>`;
+
+      document.getElementById('eventContainer').innerHTML = `
+        <div>
+          ${!ev.isActive?'<div class="alert alert-warning"><span class="alert-icon">⚠️</span>This event is currently inactive and only visible to administrators.</div>':''}
+          <div class="detail-hero-image-wrap">${heroImg}</div>
+
+          ${cats?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${cats}</div>`:''}
+          <h1 class="detail-title">${ev.title}</h1>
+
+          <div class="detail-meta-bar">
+            <div class="detail-meta-item"><div class="label">Date</div><div class="value">📅 ${fmt(ev.eventDate)}</div></div>
+            <div class="detail-meta-item"><div class="label">Time</div><div class="value">⏰ ${fmtTime(ev.startTime)} – ${fmtTime(ev.endTime)}</div></div>
+            <div class="detail-meta-item"><div class="label">Location</div><div class="value">📍 ${[ev.city?.name,ev.state?.name].filter(Boolean).join(', ')}</div></div>
+            <div class="detail-meta-item"><div class="label">Views</div><div class="value">👁 ${ev.viewsCount||0}</div></div>
+          </div>
+
+          <div class="detail-grid">
+            <div>
+              <div class="section-label"><h2>About this Event</h2></div>
+              <p class="body" style="white-space:pre-wrap">${ev.longDescription||'No description available.'}</p>
+
+              <div class="info-card" style="margin-top:36px">
+                <div class="section-label"><h2>Location Details</h2></div>
+                <div class="info-row"><span class="label">Venue</span><span style="color:var(--text);font-weight:600;margin-top:4px">${ev.venue||'N/A'}</span></div>
+                <div class="info-row"><span class="label">City</span><span style="color:var(--text-2);margin-top:4px">${ev.city?.name||'N/A'}</span></div>
+                <div class="info-row"><span class="label">State</span><span style="color:var(--text-2);margin-top:4px">${ev.state?.name||'N/A'}</span></div>
+                <div class="info-row"><span class="label">Country</span><span style="color:var(--text-2);margin-top:4px">${ev.country?.name||'N/A'}</span></div>
+              </div>
+
+              ${tags?`<div style="margin-top:24px"><div class="section-label"><h2>Tags</h2></div><div style="display:flex;flex-wrap:wrap;gap:8px">${tags}</div></div>`:''}
+
+              ${gallery}
+            </div>
+
+            <div>
+              <div class="info-card">
+                <div class="section-label"><h2>Schedule</h2></div>
+                <div class="info-row"><span class="label">Start</span><span style="color:var(--text);font-size:1.2rem;font-weight:700;margin-top:4px">${fmtTime(ev.startTime)}</span></div>
+                <div class="info-row"><span class="label">End</span><span style="color:var(--text);font-size:1.2rem;font-weight:700;margin-top:4px">${fmtTime(ev.endTime)}</span></div>
+              </div>
+
+              <div class="info-card" id="bookingSection" style="margin-top:16px">
+                <div class="section-label"><h2>Tickets</h2></div>
+                <div id="ticketContent"><p style="color:var(--text-3);font-size:.9rem">Loading...</p></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="adminActions" style="display:none;margin-top:48px;padding-top:32px;border-top:1px solid var(--border)">
+            <p class="label" style="margin-bottom:12px">Admin Actions</p>
+            <button onclick="deleteEvent('${ev.id}')" class="btn btn-danger">🗑 Delete Event</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('eventContainer').style.display = 'block';
+
+      await Promise.all([checkAdminActions(), loadTicket(ev.id)]);
+    } catch(err) {
+      document.getElementById('skeletonDetail').style.display = 'none';
+      showError('Network error: ' + err.message);
+    }
+  }
+
+  function showError(msg) {
+    document.getElementById('errorContainer').innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Oops!</div><div class="empty-state-sub">${msg}</div></div>`;
+    document.getElementById('errorContainer').style.display = 'block';
+  }
+
+  async function loadTicket(eventId) {
+    const token = localStorage.getItem('access_token');
+    const el = document.getElementById('ticketContent');
+    try {
+      const d = await gql('query($id:ID!){ticketByEventId(eventId:$id){id price availableQuantity}}', {id:eventId}, token);
+      const t = d.data&&d.data.ticketByEventId;
+      if (!t) {
+        el.innerHTML = `<div class="alert alert-warning"><span class="alert-icon">💡</span>Tickets not yet configured for this event.</div>`;
+        return;
+      }
+      const loggedIn = !!token;
+      el.innerHTML = `
+        <div>
+          <p class="ticket-price">₹${parseFloat(t.price).toFixed(2)} <span>per ticket</span></p>
+          <p style="color:var(--text-3);font-size:.875rem;margin:8px 0 20px">${t.availableQuantity} tickets available</p>
+          <button class="btn btn-primary btn-wide" onclick="${loggedIn?`openModal('${eventId}','${t.price}')`:''}" ${loggedIn?'':'disabled'} id="bookBtn">
+            ${loggedIn?'🎟 Book Tickets':'Login to Book'}
+          </button>
+          ${!loggedIn?`<p style="text-align:center;margin-top:10px;font-size:.8rem;color:var(--text-4)">Please <a href="/login/" style="color:var(--accent-lt)">login</a> to book tickets.</p>`:''}
+        </div>`;
+    } catch(_) {
+      el.innerHTML = `<p style="color:var(--red);font-size:.875rem">Error loading ticket info.</p>`;
+    }
+  }
+
+  async function checkAdminActions() {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+    try {
+      const d = await gql('{ me { isStaff isSuperuser } }', {}, token);
+      const u = d.data&&d.data.me;
+      if (u&&(u.isStaff||u.isSuperuser)) document.getElementById('adminActions').style.display='block';
+    } catch(_) {}
+  }
+
+  async function deleteEvent(id) {
+    if (!confirm('Delete this event permanently?')) return;
+    const token = localStorage.getItem('access_token');
+    const d = await gql('mutation($id:ID!){deleteEvent(id:$id){success message}}', {id}, token);
+    if (d.data?.deleteEvent?.success) { alert('Event deleted.'); window.location.href='/events/'; }
+    else alert('Error: ' + (d.data?.deleteEvent?.message||'Unknown'));
+  }
+
+  /* modal */
+  function openModal(eventId, price) {
+    document.getElementById('modalEventId').value = eventId;
+    document.getElementById('modalTicketPrice').value = parseFloat(price);
+    document.getElementById('quantityInput').textContent = '1';
+    document.getElementById('pricePerTicket').textContent = '₹' + parseFloat(price).toFixed(2);
+    recalc();
+    document.getElementById('bookingModal').classList.add('open');
+  }
+  function closeModal() { document.getElementById('bookingModal').classList.remove('open'); }
+  function changeQty(delta) {
+    const el = document.getElementById('quantityInput');
+    let q = parseInt(el.textContent)||1;
+    q = Math.max(1, Math.min(10, q + delta));
+    el.textContent = q;
+    recalc();
+  }
+  function recalc() {
+    const q = parseInt(document.getElementById('quantityInput').textContent)||1;
+    const p = parseFloat(document.getElementById('modalTicketPrice').value)||0;
+    document.getElementById('totalPrice').textContent = '₹' + (q*p).toFixed(2);
+  }
+  async function confirmBooking() {
+    const eventId  = document.getElementById('modalEventId').value;
+    const quantity = parseInt(document.getElementById('quantityInput').textContent);
+    const token    = localStorage.getItem('access_token');
+    const btn      = document.getElementById('confirmBtn');
+    btn.disabled   = true; btn.textContent = 'Booking...';
+    try {
+      const d = await gql(`
+        mutation($eventId:String!,$quantity:Int!){bookTickets(eventId:$eventId,quantity:$quantity){
+          success message booking{bookingReference totalPrice} downloadLink
+        }}
+      `, {eventId, quantity}, token);
+      const r = d.data?.bookTickets;
+      if (r?.success) {
+        alert(`✅ Booking confirmed!\nRef: ${r.booking.bookingReference}\nTotal: ₹${r.booking.totalPrice}`);
+        closeModal();
+        const slug = window.location.pathname.split('/').filter(Boolean).pop();
+        const ev   = await gql('query($slug:String!){eventBySlug(slug:$slug){id}}', {slug}, token);
+        if (ev.data?.eventBySlug) loadTicket(ev.data.eventBySlug.id);
+      } else {
+        alert('Error: ' + (r?.message||'Booking failed'));
+      }
+    } catch(err) { alert('Error: ' + err.message); }
+    finally { btn.disabled=false; btn.textContent='Confirm Booking'; }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => { checkAuth(); loadEventDetail(); });
+</script>
 </body>
 </html>
