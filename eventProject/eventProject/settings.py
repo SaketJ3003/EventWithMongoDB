@@ -89,6 +89,13 @@ DATABASES = {
         'ENGINE': 'django_mongodb_backend',
         'HOST': config('MONGO_HOST'),
         'NAME': config('MONGO_DB_NAME', default='eventProject'),
+        'OPTIONS': {
+            'maxPoolSize': 10,
+            'minPoolSize': 1,
+            'serverSelectionTimeoutMS': 30000,
+            'connectTimeoutMS': 20000,
+            'socketTimeoutMS': 30000,
+        },
     },
 }
 
