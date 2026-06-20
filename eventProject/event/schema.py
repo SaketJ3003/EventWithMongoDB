@@ -816,7 +816,17 @@ class BookTicketsMutation(graphene.Mutation):
         # Send booking confirmation email
         try:
             from .services.email_service import send_booking_confirmation_email
-            send_booking_confirmation_email(booking)
+            from .services.invoice_service import save_invoice_to_file
+            import os
+            from django.conf import settings
+            
+            # Generate and save invoice
+            invoice_filename = f"invoice_{booking_reference}.pdf"
+            invoice_dir = os.path.join(settings.MEDIA_ROOT, 'invoices')
+            invoice_path = os.path.join(invoice_dir, invoice_filename)
+            save_invoice_to_file(booking, invoice_path)
+            
+            send_booking_confirmation_email(booking, invoice_pdf=invoice_path)
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)

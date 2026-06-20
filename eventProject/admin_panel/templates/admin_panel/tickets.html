@@ -1,457 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket Management</title>
-    <link href="/static/css/style.css" rel="stylesheet">
-    <style>
-        #sidebar {
-            transition: width 0.3s ease, min-width 0.3s ease;
-            overflow: hidden;
-            min-width: 16rem;
-        }
-        #sidebar.collapsed {
-            width: 0 !important;
-            min-width: 0 !important;
-        }
-    </style>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tickets — EventHub Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
+  <link href="/static/css/admin.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50">
-    <div class="flex h-screen">
-        <aside id="sidebar" class="w-64 bg-gray-800 text-white flex flex-col">
-            <div class="p-6 border-b border-gray-700">
-                <h1 class="text-2xl font-bold">Admin Panel</h1>
-            </div>
-            <nav class="flex-1 p-4">
-                <ul class="space-y-2">
-                    <li>
-                        <a href="/admin-panel/dashboard/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/categories/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                            </svg>
-                            Categories
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/tags/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
-                            Tags
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/countries/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 004 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Countries
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/states/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                            </svg>
-                            States
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/cities/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            Cities
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/tickets/" class="flex items-center gap-3 px-4 py-3 rounded-3xl bg-gray-700 text-white font-medium">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m-4 4v2m4 4v2M9 5a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2H9z" />
-                            </svg>
-                            Tickets
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/bookings/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            Bookings
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            <div class="p-4 border-t border-gray-700">
-                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-red-600 text-gray-300 hover:text-white transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Logout
-                </button>
-            </div>
-        </aside>
+<body>
+<div class="admin-layout">
+  <aside id="sidebar" class="admin-sidebar">
+    <div class="sidebar-brand"><div class="sidebar-brand-icon">⚡</div><span class="sidebar-brand-name">EventHub Admin</span></div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a href="/admin-panel/dashboard/"  class="sidebar-link">🏠 Dashboard</a>
+      <a href="/admin-panel/create-event/" class="sidebar-link">➕ Create Event</a>
+      <div class="sidebar-section-label" style="margin-top:8px">Manage</div>
+      <a href="/admin-panel/categories/" class="sidebar-link">🏷 Categories</a>
+      <a href="/admin-panel/tags/"       class="sidebar-link">🔖 Tags</a>
+      <a href="/admin-panel/tickets/"    class="sidebar-link active">🎟 Tickets</a>
+      <a href="/admin-panel/bookings/"   class="sidebar-link">📋 Bookings</a>
+      <div class="sidebar-section-label" style="margin-top:8px">Geography</div>
+      <a href="/admin-panel/countries/"  class="sidebar-link">🌍 Countries</a>
+      <a href="/admin-panel/states/"     class="sidebar-link">🗺 States</a>
+      <a href="/admin-panel/cities/"     class="sidebar-link">🏙 Cities</a>
+      <div class="sidebar-section-label" style="margin-top:8px">Site</div>
+      <a href="/events/" class="sidebar-link">👁 View Site</a>
+    </nav>
+    <div class="sidebar-footer"><button onclick="logout()" class="sidebar-logout">🚪 Sign Out</button></div>
+  </aside>
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <button class="topbar-toggle" onclick="toggleSidebar()"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <span class="topbar-title">Ticket Management</span>
+    </header>
+    <div class="admin-content">
+      <div id="alertSuccess" class="admin-alert admin-alert-success">✓ <span id="alertSuccessText"></span></div>
+      <div id="alertError"   class="admin-alert admin-alert-error">✕ <span id="alertErrorText"></span></div>
 
-        <main class="flex-1 overflow-y-auto">
-            <header class="bg-white shadow-sm">
-                <div class="px-8 py-6 flex items-center gap-4">
-                    <button id="sidebarToggleBtn" onclick="toggleSidebar()" class="p-2 rounded-3xl hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition" title="Toggle sidebar">
-                        <svg id="toggleIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <h2 class="text-2xl font-bold text-gray-900">Ticket Management</h2>
-                </div>
-            </header>
+      <div style="margin-bottom:20px">
+        <input type="text" id="searchInput" class="filter-input" placeholder="Search events…" oninput="filterEvents()">
+      </div>
 
-            <div class="p-8">
-                <div id="successMessage" class="hidden mb-6 p-4 bg-green-50 border border-green-200 rounded-3xl text-green-800"></div>
-                <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-3xl text-red-800"></div>
-
-                <div class="mb-6 flex justify-between items-center">
-                    <input type="text" id="searchInput" placeholder="Search events..." 
-                        class="px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 w-64"
-                        oninput="filterEvents()">
-                </div>
-
-                <div class="bg-white rounded-3xl shadow overflow-hidden">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket Price</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Available Qty</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="eventsTableBody" class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading events...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div id="paginationControls" class="mt-6 flex items-center justify-between">
-                    <div class="text-sm text-gray-700">
-                        Showing <span id="pageInfo"></span>
-                    </div>
-                    <div class="flex gap-2">
-                        <button id="prevBtn" onclick="loadPage(currentPage - 1)" 
-                            class="px-4 py-2 border border-gray-300 rounded-3xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled>
-                            Previous
-                        </button>
-                        <span id="pageNumbers" class="flex items-center px-4"></span>
-                        <button id="nextBtn" onclick="loadPage(currentPage + 1)" 
-                            class="px-4 py-2 border border-gray-300 rounded-3xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled>
-                            Next
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="ticketModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-3xl shadow-xl max-w-md w-full mx-4">
-            <div class="p-6 border-b">
-                <h3 class="text-xl font-bold" id="modalTitle">Edit Ticket</h3>
-            </div>
-            <div class="p-6">
-                <form id="ticketForm" class="space-y-4">
-                    <input type="hidden" id="eventId">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Event</label>
-                        <input type="text" id="eventName" readonly
-                            class="w-full px-4 py-2 border border-gray-300 rounded-3xl bg-gray-50">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Ticket Price (₹)</label>
-                        <input type="number" id="ticketPrice" min="0" step="0.01" 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500" 
-                            placeholder="Enter ticket price">
-                        <span id="ticketPrice-error" class="hidden text-red-500 text-xs mt-1 block"></span>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Available Quantity</label>
-                        <input type="number" id="availableQuantity" min="0" 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500" 
-                            placeholder="Enter available quantity">
-                        <span id="availableQuantity-error" class="hidden text-red-500 text-xs mt-1 block"></span>
-                    </div>
-                </form>
-            </div>
-            <div class="p-6 border-t flex gap-4 justify-end">
-                <button onclick="closeModal()" class="px-6 py-2 border border-gray-300 rounded-3xl hover:bg-gray-50">Cancel</button>
-                <button onclick="saveTicket()" class="px-6 py-2 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">Save</button>
-            </div>
+      <div class="admin-table-wrap">
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead><tr><th>#</th><th>Event</th><th>Date</th><th>Price</th><th>Available Qty</th><th>Actions</th></tr></thead>
+            <tbody id="eventsTableBody"><tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-4)">Loading…</td></tr></tbody>
+          </table>
         </div>
+        <div class="admin-pagination">
+          <span class="admin-page-info" id="paginationInfo">—</span>
+          <div class="admin-page-btns">
+            <button class="admin-page-btn" id="prevBtn" onclick="loadPage(currentPage-1)">← Prev</button>
+            <span class="admin-page-numbers" id="pageNumbers"></span>
+            <button class="admin-page-btn" id="nextBtn" onclick="loadPage(currentPage+1)">Next →</button>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+</div>
 
-    <script>
-        let allEvents = [];
-        let isEditMode = false;
-        let currentPage = 1;
-        let totalPages = 1;
-        let totalCount = 0;
+<!-- Ticket Modal -->
+<div id="ticketModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" style="max-width:440px" onclick="event.stopPropagation()">
+    <div class="modal-header"><h2 class="modal-title">Edit Ticket</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <input type="hidden" id="eventId">
+    <div class="form-group">
+      <label class="form-label">Event</label>
+      <input type="text" id="eventName" class="form-input" readonly style="opacity:.6;cursor:not-allowed">
+    </div>
+    <div class="form-grid-2" style="gap:16px">
+      <div class="form-group">
+        <label class="form-label">Price (₹) <span>*</span></label>
+        <input type="number" id="ticketPrice" class="form-input" min="0" step="0.01" placeholder="0.00">
+        <small class="form-error" id="ticketPrice-error" style="display:none"></small>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Available Qty <span>*</span></label>
+        <input type="number" id="availableQuantity" class="form-input" min="0" placeholder="100">
+        <small class="form-error" id="qty-error" style="display:none"></small>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1" onclick="saveTicket()">Save Ticket</button>
+    </div>
+  </div>
+</div>
 
-        function logout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            window.location.href = '/login/';
-        }
+<script>
+  let allEvents=[],currentPage=1,totalPages=1,totalCount=0;
+  const PAGE_SIZE=15;let debounce;
+  function gql(q,v={},t=null){const h={'Content-Type':'application/json'};if(t)h['Authorization']=`JWT ${t}`;return fetch('/graphql/',{method:'POST',headers:h,body:JSON.stringify({query:q,variables:v})}).then(r=>r.json());}
+  function tok(){return localStorage.getItem('access_token');}
+  function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
+  function logout(){localStorage.removeItem('access_token');localStorage.removeItem('refresh_token');window.location.href='/events/';}
+  async function checkAdmin(){if(!tok()){window.location.href='/login/';return false;}const d=await gql('{ me { isStaff isSuperuser } }',{},tok());const u=d.data?.me;if(!u||(!u.isStaff&&!u.isSuperuser)){alert('Access denied');window.location.href='/events/';return false;}return true;}
 
-        async function checkAdmin() {
-            const accessToken = localStorage.getItem('access_token');
-            if (!accessToken) {
-                window.location.href = '/login/';
-                return false;
-            }
+  async function loadEvents(page=1){
+    currentPage=page;
+    const search=document.getElementById('searchInput').value.trim()||null;
+    const d=await gql(`query($page:Int,$ps:Int,$s:String){
+      paginatedEvents(page:$page,pageSize:$ps,search:$s){results{id title eventDate}totalCount numPages currentPage}
+    }`,{page,ps:PAGE_SIZE,s:search},tok());
+    if(d.errors){showErr('Failed to load events');return;}
+    const pg=d.data.paginatedEvents;
+    allEvents=pg.results;totalCount=pg.totalCount;totalPages=pg.numPages;currentPage=pg.currentPage;
+    await loadTickets();render((currentPage-1)*PAGE_SIZE);updatePagination();
+  }
 
-            try {
-                const res = await fetch('/graphql/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
-                    body: JSON.stringify({ query: '{ me { id isStaff isSuperuser } }' })
-                });
-                const data = await res.json();
-                const user = data.data && data.data.me;
-                if (!user || (!user.isStaff && !user.isSuperuser)) {
-                    alert('Access denied. Admin only.');
-                    window.location.href = '/events/';
-                    return false;
-                }
-                return true;
-            } catch (error) {
-                console.error('Error checking admin status:', error);
-                window.location.href = '/login/';
-                return false;
-            }
-        }
+  async function loadTickets(){
+    await Promise.all(allEvents.map(async ev=>{
+      try{
+        const d=await gql(`query{ticketByEventId(eventId:"${ev.id}"){id price availableQuantity}}`,{},tok());
+        ev.ticket=d.data?.ticketByEventId||null;
+      }catch(_){ev.ticket=null;}
+    }));
+  }
 
-        const PAGE_SIZE = 10;
-        let searchDebounceTimer;
+  function render(startIdx){
+    const tb=document.getElementById('eventsTableBody');
+    if(!allEvents.length){tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-4)">No events found</td></tr>`;return;}
+    tb.innerHTML=allEvents.map((ev,i)=>{
+      const t=ev.ticket;
+      const price=t?`₹${parseFloat(t.price).toFixed(2)}`:'<span style="color:var(--text-4)">Not set</span>';
+      const qty=t?t.availableQuantity:'<span style="color:var(--text-4)">—</span>';
+      const date=ev.eventDate?new Date(ev.eventDate+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'N/A';
+      return `<tr>
+        <td>${startIdx+i+1}</td>
+        <td class="td-primary">${ev.title}</td>
+        <td style="color:var(--text-3)">${date}</td>
+        <td style="font-weight:700;color:var(--text)">${price}</td>
+        <td>${qty}</td>
+        <td><button class="td-action-btn td-edit" onclick="openModal('${ev.id}','${ev.title.replace(/'/g,"\\'")}',${t?t.price:0},${t?t.availableQuantity:0})">Edit Ticket</button></td>
+      </tr>`;
+    }).join('');
+  }
 
-        async function loadEvents(page) {
-            page = page || currentPage || 1;
-            const accessToken = localStorage.getItem('access_token');
-            const searchTerm = document.getElementById('searchInput').value.trim();
-            try {
-                const res = await fetch('/graphql/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
-                    body: JSON.stringify({
-                        query: `query($page: Int, $pageSize: Int, $search: String) {
-                            paginatedEvents(page: $page, pageSize: $pageSize, search: $search) {
-                                results { id title eventDate }
-                                totalCount numPages currentPage
-                            }
-                            allEvents { id title }
-                        }`,
-                        variables: { page, pageSize: PAGE_SIZE, search: searchTerm || null }
-                    })
-                });
-                const data = await res.json();
-                if (data.errors) { showError('Failed to load events'); return; }
-                const pg = data.data.paginatedEvents;
-                allEvents = pg.results;
-                totalCount = pg.totalCount;
-                totalPages = pg.numPages;
-                currentPage = pg.currentPage;
-                
-                // Fetch ticket info for each event
-                await loadTicketsForEvents();
-                renderEvents(allEvents, (currentPage - 1) * PAGE_SIZE);
-                updatePaginationControls();
-            } catch (error) {
-                console.error('Error loading events:', error);
-                showError('Error loading events');
-            }
-        }
+  function openModal(id,title,price,qty){
+    document.getElementById('eventId').value=id;
+    document.getElementById('eventName').value=title;
+    document.getElementById('ticketPrice').value=price;
+    document.getElementById('availableQuantity').value=qty;
+    document.getElementById('ticketPrice-error').style.display='none';
+    document.getElementById('qty-error').style.display='none';
+    document.getElementById('ticketModal').classList.add('open');
+  }
+  function closeModal(){document.getElementById('ticketModal').classList.remove('open');}
 
-        async function loadTicketsForEvents() {
-            const accessToken = localStorage.getItem('access_token');
-            for (let event of allEvents) {
-                try {
-                    const res = await fetch('/graphql/', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
-                        body: JSON.stringify({
-                            query: `query {
-                                ticketByEventId(eventId: "${event.id}") {
-                                    id price availableQuantity
-                                }
-                            }`
-                        })
-                    });
-                    const data = await res.json();
-                    const ticket = data.data && data.data.ticketByEventId;
-                    event.ticket = ticket || { price: 0, availableQuantity: 0 };
-                } catch (error) {
-                    console.error(`Error loading ticket for event ${event.id}:`, error);
-                    event.ticket = { price: 0, availableQuantity: 0 };
-                }
-            }
-        }
+  async function saveTicket(){
+    const eventId=document.getElementById('eventId').value;
+    const price=parseFloat(document.getElementById('ticketPrice').value);
+    const quantity=parseInt(document.getElementById('availableQuantity').value);
+    let ok=true;
+    if(isNaN(price)||price<0){document.getElementById('ticketPrice-error').textContent='Invalid price';document.getElementById('ticketPrice-error').style.display='block';ok=false;}
+    else document.getElementById('ticketPrice-error').style.display='none';
+    if(isNaN(quantity)||quantity<0){document.getElementById('qty-error').textContent='Invalid qty';document.getElementById('qty-error').style.display='block';ok=false;}
+    else document.getElementById('qty-error').style.display='none';
+    if(!ok)return;
+    const d=await gql('mutation($eid:String!,$p:Float!,$q:Int!){createOrUpdateTicket(eventId:$eid,price:$p,availableQuantity:$q){success message}}',{eid:eventId,p:price,q:quantity},tok());
+    const r=d.data?.createOrUpdateTicket;
+    if(r?.success){showOk('Ticket saved');closeModal();loadEvents(currentPage);}
+    else showErr(r?.message||'Failed');
+  }
 
-        function renderEvents(events, startIndex) {
-            const tbody = document.getElementById('eventsTableBody');
-            if (events.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No events found</td></tr>';
-                return;
-            }
-            tbody.innerHTML = events.map((event, index) => {
-                const ticket = event.ticket || { price: 0, availableQuantity: 0 };
-                return `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 text-sm text-gray-900">${startIndex + index + 1}</td>
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">${event.title}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500">${new Date(event.eventDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                    <td class="px-6 py-4 text-sm text-gray-900">₹${ticket.price}</td>
-                    <td class="px-6 py-4 text-sm text-gray-900">${ticket.availableQuantity}</td>
-                    <td class="px-6 py-4 text-sm font-medium space-x-2">
-                        <button onclick="openEditModal('${event.id}', '${event.title.replace(/'/g, "\\'")}', ${ticket.price}, ${ticket.availableQuantity})" class="text-indigo-600 hover:text-indigo-900">Edit</button>
-                    </td>
-                </tr>
-            `}).join('');
-        }
+  function filterEvents(){clearTimeout(debounce);debounce=setTimeout(()=>loadEvents(1),350);}
+  function loadPage(p){if(p>=1&&p<=totalPages)loadEvents(p);}
+  function updatePagination(){
+    const s=totalCount>0?((currentPage-1)*PAGE_SIZE)+1:0,e=Math.min(currentPage*PAGE_SIZE,totalCount);
+    document.getElementById('paginationInfo').textContent=`${s}–${e} of ${totalCount}`;
+    document.getElementById('pageNumbers').textContent=`Page ${currentPage} of ${totalPages}`;
+    document.getElementById('prevBtn').disabled=currentPage<=1;
+    document.getElementById('nextBtn').disabled=currentPage>=totalPages;
+  }
+  function showOk(msg){const el=document.getElementById('alertSuccess');document.getElementById('alertSuccessText').textContent=msg;el.classList.add('show');document.getElementById('alertError').classList.remove('show');setTimeout(()=>el.classList.remove('show'),3000);}
+  function showErr(msg){const el=document.getElementById('alertError');document.getElementById('alertErrorText').textContent=msg;el.classList.add('show');}
 
-        function filterEvents() {
-            clearTimeout(searchDebounceTimer);
-            searchDebounceTimer = setTimeout(() => loadEvents(1), 350);
-        }
-
-        function openEditModal(eventId, eventTitle, price, quantity) {
-            isEditMode = true;
-            document.getElementById('eventId').value = eventId;
-            document.getElementById('eventName').value = eventTitle;
-            document.getElementById('ticketPrice').value = price;
-            document.getElementById('availableQuantity').value = quantity;
-            clearErrors();
-            document.getElementById('ticketModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('ticketModal').classList.add('hidden');
-            clearErrors();
-        }
-
-        async function saveTicket() {
-            const eventId = document.getElementById('eventId').value;
-            const price = parseFloat(document.getElementById('ticketPrice').value);
-            const quantity = parseInt(document.getElementById('availableQuantity').value);
-            
-            let errors = [];
-            if (isNaN(price) || price < 0) errors.push('Invalid ticket price');
-            if (isNaN(quantity) || quantity < 0) errors.push('Invalid quantity');
-            
-            if (errors.length > 0) {
-                showError(errors);
-                return;
-            }
-
-            const accessToken = localStorage.getItem('access_token');
-            try {
-                const res = await fetch('/graphql/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
-                    body: JSON.stringify({
-                        query: `mutation CreateOrUpdateTicket($eventId: String!, $price: Float!, $quantity: Int!) {
-                            createOrUpdateTicket(eventId: $eventId, price: $price, availableQuantity: $quantity) {
-                                success message ticket { id price availableQuantity }
-                            }
-                        }`,
-                        variables: { eventId, price, quantity }
-                    })
-                });
-                const data = await res.json();
-                
-                if (data.errors) {
-                    showError(data.errors.map(e => e.message));
-                    return;
-                }
-
-                const result = data.data && data.data.createOrUpdateTicket;
-                if (result && result.success) {
-                    showSuccess('Ticket saved successfully');
-                    closeModal();
-                    loadEvents();
-                } else {
-                    showError(result ? [result.message] : ['Operation failed']);
-                }
-            } catch (error) {
-                console.error('Error saving ticket:', error);
-                showError(['Error saving ticket']);
-            }
-        }
-
-        function showSuccess(message) {
-            const el = document.getElementById('successMessage');
-            el.textContent = message;
-            el.classList.remove('hidden');
-            document.getElementById('errorMessage').classList.add('hidden');
-            setTimeout(() => el.classList.add('hidden'), 5000);
-        }
-
-        function showError(messages) {
-            const el = document.getElementById('errorMessage');
-            if (Array.isArray(messages)) {
-                el.innerHTML = messages.map(msg => `<div class="mb-2 last:mb-0">• ${msg}</div>`).join('');
-            } else {
-                el.textContent = messages;
-            }
-            el.classList.remove('hidden');
-            document.getElementById('successMessage').classList.add('hidden');
-        }
-
-        function loadPage(page) {
-            if (page >= 1 && page <= totalPages) loadEvents(page);
-        }
-
-        function updatePaginationControls() {
-            document.getElementById('prevBtn').disabled = currentPage <= 1;
-            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
-            const start = ((currentPage - 1) * PAGE_SIZE) + 1;
-            const end = Math.min(currentPage * PAGE_SIZE, totalCount);
-            document.getElementById('pageInfo').textContent = totalCount > 0 ? `${start}-${end} of ${totalCount}` : '0 of 0';
-            document.getElementById('pageNumbers').textContent = `Page ${currentPage} of ${totalPages}`;
-        }
-
-        function clearErrors() {
-            document.getElementById('ticketPrice-error').classList.add('hidden');
-            document.getElementById('availableQuantity-error').classList.add('hidden');
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const icon = document.getElementById('toggleIcon');
-            sidebar.classList.toggle('collapsed');
-            if (sidebar.classList.contains('collapsed')) {
-                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M6 5l7 7-7 7" />`;
-            } else {
-                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />`;
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const isAdmin = await checkAdmin();
-            if (isAdmin) {
-                loadEvents();
-            }
-        });
-    </script>
+  document.addEventListener('DOMContentLoaded',async()=>{const ok=await checkAdmin();if(ok)loadEvents();});
+</script>
 </body>
 </html>

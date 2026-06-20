@@ -4,61 +4,96 @@
     <meta charset="utf-8">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: #1a1a1a;
+            background-color: #f4f4f5;
             max-width: 600px;
             margin: 0 auto;
+            padding: 20px 0;
         }
         .container {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            margin: 0 20px;
         }
         .header {
-            background-color: #1f2937;
-            color: white;
-            padding: 30px;
-            border-radius: 8px 8px 0 0;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            padding: 40px 30px;
             text-align: center;
         }
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .header p {
+            margin: 0;
+            color: #a1a1aa;
+            font-size: 15px;
+        }
         .content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 0 0 8px 8px;
+            padding: 40px 30px;
         }
         .section {
-            margin: 20px 0;
+            background-color: #fafafa;
             padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 6px;
+            border-radius: 12px;
+            border: 1px solid #e4e4e7;
+            margin-bottom: 20px;
         }
         .label {
-            font-size: 12px;
-            color: #6b7280;
+            font-size: 11px;
+            color: #71717a;
             text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
         }
         .value {
             font-size: 16px;
-            color: #1f2937;
-            font-weight: 500;
+            color: #09090b;
+            font-weight: 600;
         }
         .reference-box {
-            background-color: #f0f9ff;
-            border-left: 4px solid #3b82f6;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 4px;
+            background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .reference-box .label {
+            color: #a1a1aa;
+            margin-bottom: 8px;
+        }
+        .reference-box .value {
+            color: #ffffff;
+            font-size: 24px;
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+        .important-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 4px 12px 12px 4px;
+            color: #92400e;
+            font-size: 14px;
+            margin-top: 30px;
         }
         .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
+            background-color: #fafafa;
+            padding: 30px;
             text-align: center;
-            font-size: 12px;
-            color: #6b7280;
+            font-size: 13px;
+            color: #71717a;
+            border-top: 1px solid #e4e4e7;
+            margin-top: 30px;
         }
     </style>
 </head>
@@ -70,9 +105,8 @@
         </div>
         
         <div class="content">
-            <p>Hello <strong>{{ user_name }}</strong>,</p>
-            
-            <p>Your invoice is attached to this email. Please keep it safe for your records.</p>
+            <p style="font-size: 16px; margin-top: 0;">Hi <strong>{{ user_name }}</strong>,</p>
+            <p style="color: #52525b;">Your invoice is attached to this email. Please keep it safe for your records.</p>
             
             <div class="reference-box">
                 <div class="label">Booking Reference</div>
@@ -80,23 +114,18 @@
             </div>
             
             <div class="section">
-                <div class="label">Event</div>
-                <div class="value">{{ event_title }}</div>
-            </div>
-            
-            <div class="section">
                 <div class="label">Total Amount</div>
-                <div class="value" style="font-size: 24px; color: #059669;">₹{{ total_price }}</div>
+                <div class="value" style="font-size: 24px; color: #09090b;">₹{{ total_price }}</div>
             </div>
             
-            <div style="margin-top: 30px; padding: 20px; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
-                <p style="margin: 0;"><strong>Important:</strong> Please bring your invoice or booking reference to the event for check-in.</p>
+            <div class="important-box">
+                <strong>Important:</strong> Please bring your invoice or booking reference to the event for check-in.
             </div>
-            
-            <div class="footer">
-                <p>If you have any questions, please contact our support team.</p>
-                <p>&copy; 2024 Event Management System. All rights reserved.</p>
-            </div>
+        </div>
+        
+        <div class="footer">
+            <p style="margin: 0;">Need help? Contact support@eventhub.com</p>
+            <p style="margin: 8px 0 0 0;">&copy; 2026 EventHub. All rights reserved.</p>
         </div>
     </div>
 </body>

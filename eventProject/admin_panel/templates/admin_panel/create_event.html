@@ -1,31 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Event</title>
-    <link href="/static/css/style.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Event — EventHub Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
+  <link href="/static/css/admin.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans">
-    <nav class="border-b border-gray-200 bg-white">
-        <div class="max-w-4xl mx-auto px-6 py-6 flex justify-between items-center">
-            <h1 class="text-3xl font-mono tracking-tight"><a href="/admin-panel/dashboard/" class="hover:text-gray-600 transition">EVENTS</a></h1>
-            <div class="space-x-4">
-                <button onclick="logout()" class="text-sm text-red-600 hover:text-red-900" id="logoutBtn">Logout</button>
-            </div>
-        </div>
+<body>
+<div class="admin-layout">
+  <aside id="sidebar" class="admin-sidebar">
+    <div class="sidebar-brand"><div class="sidebar-brand-icon">⚡</div><span class="sidebar-brand-name">EventHub Admin</span></div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a href="/admin-panel/dashboard/"  class="sidebar-link">🏠 Dashboard</a>
+      <a href="/admin-panel/create-event/" class="sidebar-link active">➕ Create Event</a>
+      <div class="sidebar-section-label" style="margin-top:8px">Manage</div>
+      <a href="/admin-panel/categories/" class="sidebar-link">🏷 Categories</a>
+      <a href="/admin-panel/tags/"       class="sidebar-link">🔖 Tags</a>
+      <a href="/admin-panel/tickets/"    class="sidebar-link">🎟 Tickets</a>
+      <a href="/admin-panel/bookings/"   class="sidebar-link">📋 Bookings</a>
+      <div class="sidebar-section-label" style="margin-top:8px">Geography</div>
+      <a href="/admin-panel/countries/"  class="sidebar-link">🌍 Countries</a>
+      <a href="/admin-panel/states/"     class="sidebar-link">🗺 States</a>
+      <a href="/admin-panel/cities/"     class="sidebar-link">🏙 Cities</a>
+      <div class="sidebar-section-label" style="margin-top:8px">Site</div>
+      <a href="/events/" class="sidebar-link">👁 View Site</a>
     </nav>
+    <div class="sidebar-footer"><button onclick="logout()" class="sidebar-logout">🚪 Sign Out</button></div>
+  </aside>
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <button class="topbar-toggle" onclick="document.getElementById('sidebar').classList.toggle('collapsed')"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <span class="topbar-title">Create New Event</span>
+      <button onclick="history.back()" class="btn btn-ghost btn-sm" style="margin-left:auto">← Back</button>
+    </header>
+    <div class="admin-content">
+      <div id="alertSuccess" class="admin-alert admin-alert-success">✓ <span id="alertSuccessText"></span></div>
+      <div id="alertError"   class="admin-alert admin-alert-error">✕ <span id="alertErrorText"></span></div>
+      <div id="successMessage" style="display:none" class="admin-alert admin-alert-success"></div>
+      <div id="errorMessage"   style="display:none" class="admin-alert admin-alert-error show"></div>
 
-    <div class="max-w-4xl mx-auto px-6 py-12">
-        <button onclick="history.back()" class="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-8 font-medium">
-            <span class="text-2xl">←</span> 
-            <span>Back</span>
-        </button>
-
-        <div id="successMessage" class="hidden mb-6 p-4 bg-green-50 border border-green-200 rounded-3xl text-green-800"></div>
-        <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-3xl text-red-800"></div>
-
-        <div class="bg-white rounded-3xl shadow-lg p-8">
+      <div class="event-form-wrap">
             <h2 class="text-3xl font-bold text-gray-900 mb-8">Create New Event</h2>
 
             <form id="createEventForm" onsubmit="submitEvent(event)" class="space-y-6">
@@ -211,16 +230,16 @@
                 </div>
 
                 <div class="flex gap-4 pt-6">
-                    <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-3xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed" id="submitBtn">
+                    <button type="submit" class="btn btn-primary" style="flex:1" id="submitBtn">
                         Create Event
                     </button>
-                    <button type="button" onclick="history.back()" class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-3xl hover:bg-gray-50 transition">
+                    <button type="button" onclick="history.back()" class="btn btn-ghost">
                         Cancel
                     </button>
                 </div>
             </form>
-        </div>
-    </div>
+        </div><!-- /event-form-card -->
+      </div><!-- /event-form-wrap -->
 
     <script>
         let selectedCategories = [];
@@ -960,5 +979,9 @@
             });
         });
     </script>
+      </div><!-- /event-form-wrap -->
+    </div><!-- /admin-content -->
+  </div><!-- /admin-main -->
+</div><!-- /admin-layout -->
 </body>
 </html>

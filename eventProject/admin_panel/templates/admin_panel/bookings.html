@@ -1,452 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking Management</title>
-    <link href="/static/css/style.css" rel="stylesheet">
-    <style>
-        #sidebar {
-            transition: width 0.3s ease, min-width 0.3s ease;
-            overflow: hidden;
-            min-width: 16rem;
-        }
-        #sidebar.collapsed {
-            width: 0 !important;
-            min-width: 0 !important;
-        }
-    </style>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookings — EventHub Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
+  <link href="/static/css/admin.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50">
-    <div class="flex h-screen">
-        <aside id="sidebar" class="w-64 bg-gray-800 text-white flex flex-col">
-            <div class="p-6 border-b border-gray-700">
-                <h1 class="text-2xl font-bold">Admin Panel</h1>
-            </div>
-            <nav class="flex-1 p-4">
-                <ul class="space-y-2">
-                    <li>
-                        <a href="/admin-panel/dashboard/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/categories/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                            </svg>
-                            Categories
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/tags/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
-                            Tags
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/countries/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 004 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Countries
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/states/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                            </svg>
-                            States
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/cities/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            Cities
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/tickets/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m-4 4v2m4 4v2M9 5a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2H9z" />
-                            </svg>
-                            Tickets
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/admin-panel/bookings/" class="flex items-center gap-3 px-4 py-3 rounded-3xl bg-gray-700 text-white font-medium">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            Bookings
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            <div class="p-4 border-t border-gray-700">
-                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-red-600 text-gray-300 hover:text-white transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Logout
-                </button>
-            </div>
-        </aside>
+<body>
+<div class="admin-layout">
+  <aside id="sidebar" class="admin-sidebar">
+    <div class="sidebar-brand"><div class="sidebar-brand-icon">⚡</div><span class="sidebar-brand-name">EventHub Admin</span></div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a href="/admin-panel/dashboard/"  class="sidebar-link">🏠 Dashboard</a>
+      <a href="/admin-panel/create-event/" class="sidebar-link">➕ Create Event</a>
+      <div class="sidebar-section-label" style="margin-top:8px">Manage</div>
+      <a href="/admin-panel/categories/" class="sidebar-link">🏷 Categories</a>
+      <a href="/admin-panel/tags/"       class="sidebar-link">🔖 Tags</a>
+      <a href="/admin-panel/tickets/"    class="sidebar-link">🎟 Tickets</a>
+      <a href="/admin-panel/bookings/"   class="sidebar-link active">📋 Bookings</a>
+      <div class="sidebar-section-label" style="margin-top:8px">Geography</div>
+      <a href="/admin-panel/countries/"  class="sidebar-link">🌍 Countries</a>
+      <a href="/admin-panel/states/"     class="sidebar-link">🗺 States</a>
+      <a href="/admin-panel/cities/"     class="sidebar-link">🏙 Cities</a>
+      <div class="sidebar-section-label" style="margin-top:8px">Site</div>
+      <a href="/events/" class="sidebar-link">👁 View Site</a>
+    </nav>
+    <div class="sidebar-footer"><button onclick="logout()" class="sidebar-logout">🚪 Sign Out</button></div>
+  </aside>
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <button class="topbar-toggle" onclick="toggleSidebar()"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <span class="topbar-title">Booking Management</span>
+    </header>
+    <div class="admin-content">
+      <div id="alertError" class="admin-alert admin-alert-error">✕ <span id="alertErrorText"></span></div>
 
-        <main class="flex-1 overflow-y-auto">
-            <header class="bg-white shadow-sm">
-                <div class="px-8 py-6 flex items-center gap-4">
-                    <button id="sidebarToggleBtn" onclick="toggleSidebar()" class="p-2 rounded-3xl hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition" title="Toggle sidebar">
-                        <svg id="toggleIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <h2 class="text-2xl font-bold text-gray-900">Booking Management</h2>
-                </div>
-            </header>
+      <div class="filters-bar">
+        <input type="text" id="searchInput" class="filter-input" placeholder="Search booking reference, user, event…" oninput="filterBookings()" style="flex:1;min-width:240px">
+        <select id="statusFilter" class="filter-select" onchange="filterBookings()">
+          <option value="">All Status</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="pending">Pending</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
 
-            <div class="p-8">
-                <div id="successMessage" class="hidden mb-6 p-4 bg-green-50 border border-green-200 rounded-3xl text-green-800"></div>
-                <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-3xl text-red-800"></div>
-
-                <div class="mb-6 flex justify-between items-center gap-4">
-                    <input type="text" id="searchInput" placeholder="Search by booking reference, user, or event..." 
-                        class="px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 flex-1"
-                        oninput="filterBookings()">
-                    <select id="statusFilter" onchange="filterBookings()" class="px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Status</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="pending">Pending</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </div>
-
-                <div class="bg-white rounded-3xl shadow overflow-hidden">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booking Ref</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Price</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booked Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bookingsTableBody" class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td colspan="8" class="px-6 py-4 text-center text-gray-500">Loading bookings...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div id="paginationControls" class="mt-6 flex items-center justify-between">
-                    <div class="text-sm text-gray-700">
-                        Showing <span id="pageInfo"></span>
-                    </div>
-                    <div class="flex gap-2">
-                        <button id="prevBtn" onclick="loadPage(currentPage - 1)" 
-                            class="px-4 py-2 border border-gray-300 rounded-3xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled>
-                            Previous
-                        </button>
-                        <span id="pageNumbers" class="flex items-center px-4"></span>
-                        <button id="nextBtn" onclick="loadPage(currentPage + 1)" 
-                            class="px-4 py-2 border border-gray-300 rounded-3xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled>
-                            Next
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="bookingDetailModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-3xl shadow-xl max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-            <div class="p-6 border-b">
-                <h3 class="text-xl font-bold">Booking Details</h3>
-            </div>
-            <div class="p-6" id="bookingDetailContent">
-                <!-- Details will be populated here -->
-            </div>
-            <div class="p-6 border-t flex justify-end">
-                <button onclick="closeDetailModal()" class="px-6 py-2 border border-gray-300 rounded-3xl hover:bg-gray-50">Close</button>
-            </div>
+      <div class="admin-table-wrap">
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead><tr><th>Ref</th><th>User</th><th>Event</th><th>Qty</th><th>Total</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="bookingsTableBody"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-4)">Loading…</td></tr></tbody>
+          </table>
         </div>
+        <div class="admin-pagination">
+          <span class="admin-page-info" id="paginationInfo">—</span>
+          <div class="admin-page-btns">
+            <button class="admin-page-btn" id="prevBtn" onclick="loadPage(currentPage-1)">← Prev</button>
+            <span class="admin-page-numbers" id="pageNumbers"></span>
+            <button class="admin-page-btn" id="nextBtn" onclick="loadPage(currentPage+1)">Next →</button>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+</div>
 
-    <script>
-        let allBookings = [];
-        let currentPage = 1;
-        let totalPages = 1;
-        let totalCount = 0;
-        const PAGE_SIZE = 10;
-        let searchDebounceTimer;
+<!-- Detail Modal -->
+<div id="detailModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" style="max-width:560px" onclick="event.stopPropagation()">
+    <div class="modal-header"><h2 class="modal-title">Booking Details</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div id="detailContent" class="admin-modal-content"></div>
+  </div>
+</div>
 
-        function logout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            window.location.href = '/login/';
-        }
+<script>
+  let allBookings=[],currentPage=1,totalPages=1,totalCount=0;
+  const PAGE_SIZE=15;let debounce;
+  function gql(q,v={},t=null){const h={'Content-Type':'application/json'};if(t)h['Authorization']=`JWT ${t}`;return fetch('/graphql/',{method:'POST',headers:h,body:JSON.stringify({query:q,variables:v})}).then(r=>r.json());}
+  function tok(){return localStorage.getItem('access_token');}
+  function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
+  function logout(){localStorage.removeItem('access_token');localStorage.removeItem('refresh_token');window.location.href='/events/';}
 
-        async function checkAdmin() {
-            const accessToken = localStorage.getItem('access_token');
-            if (!accessToken) {
-                window.location.href = '/login/';
-                return false;
-            }
+  async function checkAdmin(){
+    if(!tok()){window.location.href='/login/';return false;}
+    const d=await gql('{ me { isStaff isSuperuser } }',{},tok());
+    const u=d.data?.me;
+    if(!u||(!u.isStaff&&!u.isSuperuser)){alert('Access denied.');window.location.href='/events/';return false;}
+    return true;
+  }
 
-            try {
-                const res = await fetch('/graphql/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
-                    body: JSON.stringify({ query: '{ me { id isStaff isSuperuser } }' })
-                });
-                const data = await res.json();
-                const user = data.data && data.data.me;
-                if (!user || (!user.isStaff && !user.isSuperuser)) {
-                    alert('Access denied. Admin only.');
-                    window.location.href = '/events/';
-                    return false;
-                }
-                return true;
-            } catch (error) {
-                console.error('Error checking admin status:', error);
-                window.location.href = '/login/';
-                return false;
-            }
-        }
+  async function loadBookings(page=1){
+    currentPage=page;
+    const search=document.getElementById('searchInput').value.trim()||null;
+    const status=document.getElementById('statusFilter').value||null;
+    const d=await gql(`query($page:Int,$ps:Int,$s:String,$st:String){
+      allBookings(page:$page,pageSize:$ps,search:$s,status:$st){
+        results{id bookingReference user{username email firstName lastName} event{title} ticket{price} quantity totalPrice status createdAt}
+        totalCount numPages currentPage
+      }
+    }`,{page,ps:PAGE_SIZE,s:search,st:status},tok());
+    if(d.errors){showErr(d.errors[0].message);return;}
+    const bk=d.data?.allBookings;
+    if(!bk){showErr('No data');return;}
+    allBookings=bk.results||[];
+    totalCount=bk.totalCount;totalPages=bk.numPages;currentPage=bk.currentPage;
+    render();updatePagination();
+  }
 
-        async function loadBookings(page = 1) {
-            const accessToken = localStorage.getItem('access_token');
-            const searchTerm = document.getElementById('searchInput').value.trim();
-            const status = document.getElementById('statusFilter').value;
+  function render(){
+    const tb=document.getElementById('bookingsTableBody');
+    if(!allBookings.length){tb.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-4)">No bookings found</td></tr>`;return;}
+    tb.innerHTML=allBookings.map(b=>{
+      const name=b.user.firstName&&b.user.lastName?`${b.user.firstName} ${b.user.lastName}`:b.user.username;
+      const date=new Date(b.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+      const badge=b.status==='confirmed'?'badge-green':b.status==='pending'?'badge-amber':'badge-red';
+      return `<tr>
+        <td><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--accent-lt);font-size:.8rem">${b.bookingReference}</span></td>
+        <td><div class="td-primary">${name}</div><div class="td-sub">${b.user.email}</div></td>
+        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.event.title}</td>
+        <td style="text-align:center">${b.quantity}</td>
+        <td style="font-weight:700;color:var(--text)">₹${parseFloat(b.totalPrice).toFixed(2)}</td>
+        <td style="color:var(--text-3)">${date}</td>
+        <td><span class="badge ${badge}">${b.status}</span></td>
+        <td><button class="td-action-btn td-view" onclick="viewDetail('${b.id}')">View</button></td>
+      </tr>`;
+    }).join('');
+  }
 
-            try {
-                const res = await fetch('/graphql/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
-                    body: JSON.stringify({
-                        query: `query($page: Int, $pageSize: Int, $search: String, $status: String) {
-                            allBookings(page: $page, pageSize: $pageSize, search: $search, status: $status) {
-                                results {
-                                    id
-                                    bookingReference
-                                    user { id username email firstName lastName }
-                                    event { id title }
-                                    ticket { id price }
-                                    quantity
-                                    totalPrice
-                                    status
-                                    createdAt
-                                }
-                                totalCount
-                                numPages
-                                currentPage
-                            }
-                        }`,
-                        variables: { page, pageSize: PAGE_SIZE, search: searchTerm || null, status: status || null }
-                    })
-                });
-                
-                const data = await res.json();
-                
-                if (data.errors) {
-                    showError('Failed to load bookings: ' + (data.errors[0]?.message || 'Unknown error'));
-                    return;
-                }
+  function viewDetail(id){
+    const b=allBookings.find(x=>x.id===id);if(!b)return;
+    const name=b.user.firstName&&b.user.lastName?`${b.user.firstName} ${b.user.lastName}`:b.user.username;
+    const date=new Date(b.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const badge=b.status==='confirmed'?'badge-green':b.status==='pending'?'badge-amber':'badge-red';
+    document.getElementById('detailContent').innerHTML=`
+      <div class="admin-modal-grid">
+        <div><div class="admin-detail-label">Booking Ref</div><div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--accent-lt)">${b.bookingReference}</div></div>
+        <div><div class="admin-detail-label">Status</div><span class="badge ${badge}">${b.status}</span></div>
+        <div><div class="admin-detail-label">Customer</div><div class="admin-detail-value">${name}</div></div>
+        <div><div class="admin-detail-label">Email</div><div class="admin-detail-value">${b.user.email}</div></div>
+        <div style="grid-column:1/-1"><div class="admin-detail-label">Event</div><div class="admin-detail-value">${b.event.title}</div></div>
+        <div><div class="admin-detail-label">Quantity</div><div style="font-size:1.5rem;font-weight:800;color:var(--text)">${b.quantity}</div></div>
+        <div><div class="admin-detail-label">Ticket Price</div><div class="admin-detail-value">₹${parseFloat(b.ticket.price).toFixed(2)}</div></div>
+        <div><div class="admin-detail-label">Total Paid</div><div style="font-size:1.5rem;font-weight:800;color:var(--green)">₹${parseFloat(b.totalPrice).toFixed(2)}</div></div>
+        <div><div class="admin-detail-label">Booked On</div><div class="admin-detail-value">${date}</div></div>
+      </div>`;
+    document.getElementById('detailModal').classList.add('open');
+  }
+  function closeModal(){document.getElementById('detailModal').classList.remove('open');}
 
-                const bookingData = data.data?.allBookings;
-                if (!bookingData) {
-                    showError('No booking data returned');
-                    return;
-                }
+  function filterBookings(){clearTimeout(debounce);debounce=setTimeout(()=>loadBookings(1),350);}
+  function loadPage(p){if(p>=1&&p<=totalPages)loadBookings(p);}
+  function updatePagination(){
+    const s=totalCount>0?((currentPage-1)*PAGE_SIZE)+1:0;
+    const e=Math.min(currentPage*PAGE_SIZE,totalCount);
+    document.getElementById('paginationInfo').textContent=`${s}–${e} of ${totalCount}`;
+    document.getElementById('pageNumbers').textContent=`Page ${currentPage} of ${totalPages}`;
+    document.getElementById('prevBtn').disabled=currentPage<=1;
+    document.getElementById('nextBtn').disabled=currentPage>=totalPages;
+  }
+  function showErr(msg){const el=document.getElementById('alertError');document.getElementById('alertErrorText').textContent=msg;el.classList.add('show');}
 
-                allBookings = bookingData.results || [];
-                totalCount = bookingData.totalCount || 0;
-                totalPages = bookingData.numPages || 1;
-                currentPage = bookingData.currentPage || 1;
-
-                renderBookings();
-                updatePaginationControls();
-            } catch (error) {
-                console.error('Error loading bookings:', error);
-                showError('Error loading bookings: ' + error.message);
-            }
-        }
-
-        function renderBookings() {
-            const tbody = document.getElementById('bookingsTableBody');
-            
-            if (allBookings.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No bookings found</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = allBookings.map(booking => {
-                const userName = booking.user.firstName && booking.user.lastName 
-                    ? `${booking.user.firstName} ${booking.user.lastName}` 
-                    : booking.user.username;
-                const bookedDate = new Date(booking.createdAt).toLocaleDateString('en-GB', { 
-                    day: '2-digit', 
-                    month: 'short', 
-                    year: 'numeric' 
-                });
-                const statusClass = booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
-                                   booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                                   'bg-red-100 text-red-800';
-
-                return `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 text-sm font-medium text-blue-600">${booking.bookingReference}</td>
-                    <td class="px-6 py-4 text-sm text-gray-900">${userName}</td>
-                    <td class="px-6 py-4 text-sm text-gray-900">${booking.event.title}</td>
-                    <td class="px-6 py-4 text-sm text-gray-900 text-center">${booking.quantity}</td>
-                    <td class="px-6 py-4 text-sm text-gray-900 font-medium">₹${parseFloat(booking.totalPrice).toFixed(2)}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500">${bookedDate}</td>
-                    <td class="px-6 py-4 text-sm">
-                        <span class="px-3 py-1 rounded-full text-xs font-medium ${statusClass}">
-                            ${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-sm font-medium">
-                        <button onclick="showBookingDetail('${booking.id}')" class="text-indigo-600 hover:text-indigo-900">View</button>
-                    </td>
-                </tr>
-            `}).join('');
-        }
-
-        function filterBookings() {
-            clearTimeout(searchDebounceTimer);
-            searchDebounceTimer = setTimeout(() => loadBookings(1), 350);
-        }
-
-        function showBookingDetail(bookingId) {
-            const booking = allBookings.find(b => b.id === bookingId);
-            if (!booking) return;
-
-            const userName = booking.user.firstName && booking.user.lastName 
-                ? `${booking.user.firstName} ${booking.user.lastName}` 
-                : booking.user.username;
-            const bookedDate = new Date(booking.createdAt).toLocaleDateString('en-GB', { 
-                day: '2-digit', 
-                month: 'short', 
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            const content = `
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Booking Reference</label>
-                            <p class="text-lg font-semibold text-blue-600">${booking.bookingReference}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Status</label>
-                            <span class="inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                                booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
-                                booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                                'bg-red-100 text-red-800'
-                            }">
-                                ${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">User Name</label>
-                            <p class="text-gray-900">${userName}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Email</label>
-                            <p class="text-gray-900">${booking.user.email}</p>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Event</label>
-                        <p class="text-gray-900">${booking.event.title}</p>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Quantity</label>
-                            <p class="text-gray-900 font-medium">${booking.quantity}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Ticket Price</label>
-                            <p class="text-gray-900 font-medium">₹${parseFloat(booking.ticket.price).toFixed(2)}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Total Price</label>
-                            <p class="text-gray-900 font-medium">₹${parseFloat(booking.totalPrice).toFixed(2)}</p>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Booked On</label>
-                        <p class="text-gray-900">${bookedDate}</p>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('bookingDetailContent').innerHTML = content;
-            document.getElementById('bookingDetailModal').classList.remove('hidden');
-        }
-
-        function closeDetailModal() {
-            document.getElementById('bookingDetailModal').classList.add('hidden');
-        }
-
-        function loadPage(page) {
-            if (page >= 1 && page <= totalPages) loadBookings(page);
-        }
-
-        function updatePaginationControls() {
-            document.getElementById('prevBtn').disabled = currentPage <= 1;
-            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
-            const start = ((currentPage - 1) * PAGE_SIZE) + 1;
-            const end = Math.min(currentPage * PAGE_SIZE, totalCount);
-            document.getElementById('pageInfo').textContent = totalCount > 0 ? `${start}-${end} of ${totalCount}` : '0 of 0';
-            document.getElementById('pageNumbers').textContent = `Page ${currentPage} of ${totalPages}`;
-        }
-
-        function showError(message) {
-            const el = document.getElementById('errorMessage');
-            el.textContent = message;
-            el.classList.remove('hidden');
-            document.getElementById('successMessage').classList.add('hidden');
-            setTimeout(() => el.classList.add('hidden'), 5000);
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const icon = document.getElementById('toggleIcon');
-            sidebar.classList.toggle('collapsed');
-            if (sidebar.classList.contains('collapsed')) {
-                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M6 5l7 7-7 7" />`;
-            } else {
-                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />`;
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const isAdmin = await checkAdmin();
-            if (isAdmin) {
-                loadBookings();
-            }
-        });
-    </script>
+  document.addEventListener('DOMContentLoaded',async()=>{
+    const ok=await checkAdmin();if(ok)loadBookings();
+  });
+</script>
 </body>
 </html>
