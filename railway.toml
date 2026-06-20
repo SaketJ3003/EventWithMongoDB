@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "cd eventProject && gunicorn eventProject.wsgi --bind 0.0.0.0:$PORT --log-file -"
+startCommand = "cd eventProject && python manage.py collectstatic --noinput && gunicorn eventProject.wsgi --bind 0.0.0.0:$PORT --log-file -"
 healthcheckPath = "/graphql"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
