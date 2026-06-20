@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'graphene_django',
     'graphql_jwt.refresh_token',
-    'cloudinary_storage',
     'cloudinary',
     'event',
     'admin_panel',
@@ -210,14 +209,34 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Cloudinary — persistent image storage for production.
-# Set CLOUDINARY_URL in Railway env vars (format: cloudinary://key:secret@cloud_name).
-# Falls back to local MEDIA_ROOT storage when not set (localhost dev).
+# Set CLOUDINARY_URL in Railway env vars (format: cloudinary://api_key:api_secret@cloud_name).
+# Falls back to local filesystem storage when CLOUDINARY_URL is not set (localhost).
 CLOUDINARY_URL = config('CLOUDINARY_URL', default='')
+
 if CLOUDINARY_URL:
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    CLOUDINARY_STORAGE = {
-        'CLOUDINARY_URL': CLOUDINARY_URL,
+    import cloudinary
+    import cloudinary.uploader
+    import cloudinary.api
+    # Parse cloudinary://key:secret@cloud_name
+    _url = CLOUDINARY_URL.replace('cloudinary://', '')
+    _credentials, _cloud = _url.rsplit('@', 1)
+    _api_key, _api_secret = _credentials.split(':', 1)
+    cloudinary.config(
+        cloud_name=_cloud,
+        api_key=_api_key,
+        api_secret=_api_secret,
+        secure=True
+    )
+    # Django 6.0+ uses STORAGES dict
+    STORAGES = {
+        'default': {
+            'BACKEND': 'event.cloudinary_storage.CloudinaryStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+        },
     }
+
 
 # Email Configuration
 # Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in Railway environment variables.
