@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Country Management</title>
+    <title>Ticket Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         #sidebar {
@@ -50,7 +50,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="/admin-panel/countries/" class="flex items-center gap-3 px-4 py-3 rounded-3xl bg-gray-700 text-white font-medium">
+                        <a href="/admin-panel/countries/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 004 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -74,7 +74,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="/admin-panel/tickets/" class="flex items-center gap-3 px-4 py-3 rounded-3xl hover:bg-gray-700 text-gray-300 hover:text-white transition">
+                        <a href="/admin-panel/tickets/" class="flex items-center gap-3 px-4 py-3 rounded-3xl bg-gray-700 text-white font-medium">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m-4 4v2m4 4v2M9 5a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2H9z" />
                             </svg>
@@ -109,7 +109,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
                         </svg>
                     </button>
-                    <h2 class="text-2xl font-bold text-gray-900">Country Management</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">Ticket Management</h2>
                 </div>
             </header>
 
@@ -118,12 +118,9 @@
                 <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-3xl text-red-800"></div>
 
                 <div class="mb-6 flex justify-between items-center">
-                    <input type="text" id="searchInput" placeholder="Search countries..." 
+                    <input type="text" id="searchInput" placeholder="Search events..." 
                         class="px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 w-64"
-                        oninput="filterCountries()">
-                    <button onclick="openAddModal()" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-3xl hover:bg-blue-700 transition">
-                        + Add Country
-                    </button>
+                        oninput="filterEvents()">
                 </div>
 
                 <div class="bg-white rounded-3xl shadow overflow-hidden">
@@ -131,15 +128,16 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Countries</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket Price</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Available Qty</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="countriesTableBody" class="bg-white divide-y divide-gray-200">
+                        <tbody id="eventsTableBody" class="bg-white divide-y divide-gray-200">
                             <tr>
-                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">Loading countries...</td>
+                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading events...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -167,39 +165,48 @@
         </main>
     </div>
 
-    <div id="countryModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div id="ticketModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-3xl shadow-xl max-w-md w-full mx-4">
             <div class="p-6 border-b">
-                <h3 class="text-xl font-bold" id="modalTitle">Add Country</h3>
+                <h3 class="text-xl font-bold" id="modalTitle">Edit Ticket</h3>
             </div>
             <div class="p-6">
-                <form id="countryForm" class="space-y-4">
-                    <input type="hidden" id="countryId">
+                <form id="ticketForm" class="space-y-4">
+                    <input type="hidden" id="eventId">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Country Name</label>
-                        <input type="text" id="countryName" maxlength="100" 
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Event</label>
+                        <input type="text" id="eventName" readonly
+                            class="w-full px-4 py-2 border border-gray-300 rounded-3xl bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ticket Price (₹)</label>
+                        <input type="number" id="ticketPrice" min="0" step="0.01" 
                             class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500" 
-                            placeholder="Enter country name">
-                        <span id="countryName-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            placeholder="Enter ticket price">
+                        <span id="ticketPrice-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Available Quantity</label>
+                        <input type="number" id="availableQuantity" min="0" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500" 
+                            placeholder="Enter available quantity">
+                        <span id="availableQuantity-error" class="hidden text-red-500 text-xs mt-1 block"></span>
                     </div>
                 </form>
             </div>
             <div class="p-6 border-t flex gap-4 justify-end">
                 <button onclick="closeModal()" class="px-6 py-2 border border-gray-300 rounded-3xl hover:bg-gray-50">Cancel</button>
-                <button onclick="saveCountry()" class="px-6 py-2 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">Save</button>
+                <button onclick="saveTicket()" class="px-6 py-2 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">Save</button>
             </div>
         </div>
     </div>
 
     <script>
-        let allCountries = [];
-        let allCountrySlugs = [];   
+        let allEvents = [];
         let isEditMode = false;
         let currentPage = 1;
         let totalPages = 1;
         let totalCount = 0;
-        let nextUrl = null;
-        let prevUrl = null;
 
         function logout() {
             localStorage.removeItem('access_token');
@@ -238,7 +245,7 @@
         const PAGE_SIZE = 10;
         let searchDebounceTimer;
 
-        async function loadCountries(page) {
+        async function loadEvents(page) {
             page = page || currentPage || 1;
             const accessToken = localStorage.getItem('access_token');
             const searchTerm = document.getElementById('searchInput').value.trim();
@@ -248,146 +255,146 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
                     body: JSON.stringify({
                         query: `query($page: Int, $pageSize: Int, $search: String) {
-                            paginatedCountries(page: $page, pageSize: $pageSize, search: $search) {
-                                results { id name slug createdAt }
+                            paginatedEvents(page: $page, pageSize: $pageSize, search: $search) {
+                                results { id title eventDate }
                                 totalCount numPages currentPage
                             }
-                            allCountries { id slug }
+                            allEvents { id title }
                         }`,
                         variables: { page, pageSize: PAGE_SIZE, search: searchTerm || null }
                     })
                 });
                 const data = await res.json();
-                if (data.errors) { showError('Failed to load countries'); return; }
-                const pg = data.data.paginatedCountries;
-                allCountries = pg.results;
+                if (data.errors) { showError('Failed to load events'); return; }
+                const pg = data.data.paginatedEvents;
+                allEvents = pg.results;
                 totalCount = pg.totalCount;
                 totalPages = pg.numPages;
                 currentPage = pg.currentPage;
-                allCountrySlugs = (data.data.allCountries || []).map(c => ({ id: c.id, slug: c.slug }));
-                renderCountries(allCountries, (currentPage - 1) * PAGE_SIZE);
+                
+                // Fetch ticket info for each event
+                await loadTicketsForEvents();
+                renderEvents(allEvents, (currentPage - 1) * PAGE_SIZE);
                 updatePaginationControls();
             } catch (error) {
-                console.error('Error loading countries:', error);
-                showError('Error loading countries');
+                console.error('Error loading events:', error);
+                showError('Error loading events');
             }
         }
 
-        function renderCountries(countries, startIndex) {
-            const tbody = document.getElementById('countriesTableBody');
-            if (countries.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No countries found</td></tr>';
+        async function loadTicketsForEvents() {
+            const accessToken = localStorage.getItem('access_token');
+            for (let event of allEvents) {
+                try {
+                    const res = await fetch('/graphql/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
+                        body: JSON.stringify({
+                            query: `query {
+                                ticketByEventId(eventId: "${event.id}") {
+                                    id price availableQuantity
+                                }
+                            }`
+                        })
+                    });
+                    const data = await res.json();
+                    const ticket = data.data && data.data.ticketByEventId;
+                    event.ticket = ticket || { price: 0, availableQuantity: 0 };
+                } catch (error) {
+                    console.error(`Error loading ticket for event ${event.id}:`, error);
+                    event.ticket = { price: 0, availableQuantity: 0 };
+                }
+            }
+        }
+
+        function renderEvents(events, startIndex) {
+            const tbody = document.getElementById('eventsTableBody');
+            if (events.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No events found</td></tr>';
                 return;
             }
-            tbody.innerHTML = countries.map((country, index) => `
+            tbody.innerHTML = events.map((event, index) => {
+                const ticket = event.ticket || { price: 0, availableQuantity: 0 };
+                return `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 text-sm text-gray-900">${startIndex + index + 1}</td>
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">${country.name}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500">${country.slug}</td>
-                    <td class="px-6 py-4 text-sm text-gray-900">${new Date(country.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">${event.title}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${new Date(event.eventDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">₹${ticket.price}</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${ticket.availableQuantity}</td>
                     <td class="px-6 py-4 text-sm font-medium space-x-2">
-                        <button onclick="openEditModal('${country.id}')" class="text-indigo-600 hover:text-indigo-900">Edit</button>
-                        <button onclick="deleteCountry('${country.id}')" class="text-red-600 hover:text-red-900">Delete</button>
+                        <button onclick="openEditModal('${event.id}', '${event.title.replace(/'/g, "\\'")}', ${ticket.price}, ${ticket.availableQuantity})" class="text-indigo-600 hover:text-indigo-900">Edit</button>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
-        function filterCountries() {
+        function filterEvents() {
             clearTimeout(searchDebounceTimer);
-            searchDebounceTimer = setTimeout(() => loadCountries(1), 350);
+            searchDebounceTimer = setTimeout(() => loadEvents(1), 350);
         }
 
-        function openAddModal() {
-            isEditMode = false;
-            document.getElementById('modalTitle').textContent = 'Add Country';
-            document.getElementById('countryId').value = '';
-            document.getElementById('countryName').value = '';
-            clearCountryNameError();
-            document.getElementById('countryModal').classList.remove('hidden');
-        }
-
-        function openEditModal(countryId) {
+        function openEditModal(eventId, eventTitle, price, quantity) {
             isEditMode = true;
-            const country = allCountries.find(c => String(c.id) === String(countryId));
-            if (!country) return;
-            document.getElementById('modalTitle').textContent = 'Edit Country';
-            document.getElementById('countryId').value = country.id;
-            document.getElementById('countryName').value = country.name;
-            clearCountryNameError();
-            document.getElementById('countryModal').classList.remove('hidden');
+            document.getElementById('eventId').value = eventId;
+            document.getElementById('eventName').value = eventTitle;
+            document.getElementById('ticketPrice').value = price;
+            document.getElementById('availableQuantity').value = quantity;
+            clearErrors();
+            document.getElementById('ticketModal').classList.remove('hidden');
         }
 
         function closeModal() {
-            document.getElementById('countryModal').classList.add('hidden');
-            clearCountryNameError();
+            document.getElementById('ticketModal').classList.add('hidden');
+            clearErrors();
         }
 
-        async function saveCountry() {
-            const name = document.getElementById('countryName').value;
-            const error = validateCountryName(name);
-            showCountryNameError(error);
-            if (error) return;
-
-            const accessToken = localStorage.getItem('access_token');
-            try {
-                let query, variables;
-                if (isEditMode) {
-                    const countryId = document.getElementById('countryId').value;
-                    query = `mutation UpdateCountry($id: ID!, $name: String) {
-                        updateCountry(id: $id, name: $name) {
-                            success message country { id name slug createdAt }
-                        }
-                    }`;
-                    variables = { id: countryId, name };
-                } else {
-                    query = `mutation CreateCountry($name: String!) {
-                        createCountry(name: $name) {
-                            success message country { id name slug createdAt }
-                        }
-                    }`;
-                    variables = { name };
-                }
-                const res = await fetch('/graphql/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
-                    body: JSON.stringify({ query, variables })
-                });
-                const data = await res.json();
-                const result = data.data && (data.data.updateCountry || data.data.createCountry);
-                if (result && result.success) {
-                    showSuccess(`Country ${isEditMode ? 'updated' : 'created'} successfully`);
-                    closeModal();
-                    loadCountries();
-                } else {
-                    showCountryNameError(result ? result.message : 'Operation failed');
-                }
-            } catch (error) {
-                console.error('Error saving country:', error);
-                showError('Error saving country');
+        async function saveTicket() {
+            const eventId = document.getElementById('eventId').value;
+            const price = parseFloat(document.getElementById('ticketPrice').value);
+            const quantity = parseInt(document.getElementById('availableQuantity').value);
+            
+            let errors = [];
+            if (isNaN(price) || price < 0) errors.push('Invalid ticket price');
+            if (isNaN(quantity) || quantity < 0) errors.push('Invalid quantity');
+            
+            if (errors.length > 0) {
+                showError(errors);
+                return;
             }
-        }
 
-        async function deleteCountry(countryId) {
-            if (!confirm('Are you sure you want to delete this country? This will also delete all related states and cities.')) return;
             const accessToken = localStorage.getItem('access_token');
             try {
                 const res = await fetch('/graphql/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `JWT ${accessToken}` },
-                    body: JSON.stringify({ query: `mutation { deleteCountry(id: "${countryId}") { success message } }` })
+                    body: JSON.stringify({
+                        query: `mutation CreateOrUpdateTicket($eventId: String!, $price: Float!, $quantity: Int!) {
+                            createOrUpdateTicket(eventId: $eventId, price: $price, availableQuantity: $quantity) {
+                                success message ticket { id price availableQuantity }
+                            }
+                        }`,
+                        variables: { eventId, price, quantity }
+                    })
                 });
                 const data = await res.json();
-                const result = data.data && data.data.deleteCountry;
+                
+                if (data.errors) {
+                    showError(data.errors.map(e => e.message));
+                    return;
+                }
+
+                const result = data.data && data.data.createOrUpdateTicket;
                 if (result && result.success) {
-                    showSuccess('Country deleted successfully');
-                    loadCountries();
+                    showSuccess('Ticket saved successfully');
+                    closeModal();
+                    loadEvents();
                 } else {
-                    showError(result ? result.message : 'Failed to delete country');
+                    showError(result ? [result.message] : ['Operation failed']);
                 }
             } catch (error) {
-                console.error('Error deleting country:', error);
-                showError('Error deleting country');
+                console.error('Error saving ticket:', error);
+                showError(['Error saving ticket']);
             }
         }
 
@@ -399,19 +406,19 @@
             setTimeout(() => el.classList.add('hidden'), 5000);
         }
 
-        function showError(message) {
+        function showError(messages) {
             const el = document.getElementById('errorMessage');
-            if (Array.isArray(message)) {
-                el.innerHTML = message.map(msg => `<div class="mb-2 last:mb-0">• ${msg}</div>`).join('');
+            if (Array.isArray(messages)) {
+                el.innerHTML = messages.map(msg => `<div class="mb-2 last:mb-0">• ${msg}</div>`).join('');
             } else {
-                el.textContent = message;
+                el.textContent = messages;
             }
             el.classList.remove('hidden');
             document.getElementById('successMessage').classList.add('hidden');
         }
 
         function loadPage(page) {
-            if (page >= 1 && page <= totalPages) loadCountries(page);
+            if (page >= 1 && page <= totalPages) loadEvents(page);
         }
 
         function updatePaginationControls() {
@@ -423,75 +430,9 @@
             document.getElementById('pageNumbers').textContent = `Page ${currentPage} of ${totalPages}`;
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const isAdmin = await checkAdmin();
-            if (isAdmin) {
-                loadCountries();
-            }
-
-            function debounce(fn, delay) {
-                let timer;
-                return function (...args) {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => fn.apply(this, args), delay);
-                };
-            }
-
-            const nameInput = document.getElementById('countryName');
-            nameInput.addEventListener('input', debounce(function () {
-                showCountryNameError(validateCountryName(this.value));
-            }, 300));
-            nameInput.addEventListener('blur', function () {
-                showCountryNameError(validateCountryName(this.value));
-            });
-        });
-
-        function generateSlug(value) {
-            return value.trim().toLowerCase()
-                .replace(/[^\w\s-]/g, '')
-                .replace(/\s+/g, '-')
-                .replace(/-+/g, '-');
-        }
-
-        function validateCountryName(value) {
-            if (!value || !value.trim())
-                return 'Country name is required.';
-            if (value !== value.trim())
-                return 'Country name cannot have leading or trailing spaces.';
-            if (/ {2,}/.test(value))
-                return 'Country name cannot contain multiple consecutive spaces.';
-            if (value.trim().length < 3)
-                return 'Country name must be at least 3 characters.';
-            if (value.trim().length > 100)
-                return 'Country name cannot exceed 100 characters.';
-            if (!/^[a-zA-Z]+([ ][a-zA-Z]+)*$/.test(value.trim()))
-                return 'Country name can only contain letters and single spaces between words.';
-            const candidateSlug = generateSlug(value);
-            const editingId = isEditMode ? document.getElementById('countryId').value : null;
-            const duplicate = allCountrySlugs.find(s => s.slug === candidateSlug && s.id !== editingId);
-            if (duplicate)
-                return 'A country with this name already exists.';
-            return '';
-        }
-
-        function showCountryNameError(errorMessage) {
-            const input   = document.getElementById('countryName');
-            const errSpan = document.getElementById('countryName-error');
-            const hasValue = !!input.value;
-            input.classList.toggle('border-red-500',   !!errorMessage);
-            input.classList.toggle('border-green-500', !errorMessage && hasValue);
-            input.classList.toggle('border-gray-300',  !errorMessage && !hasValue);
-            errSpan.textContent = errorMessage;
-            errSpan.classList.toggle('hidden', !errorMessage);
-        }
-
-        function clearCountryNameError() {
-            const input   = document.getElementById('countryName');
-            const errSpan = document.getElementById('countryName-error');
-            input.classList.remove('border-red-500', 'border-green-500');
-            input.classList.add('border-gray-300');
-            errSpan.textContent = '';
-            errSpan.classList.add('hidden');
+        function clearErrors() {
+            document.getElementById('ticketPrice-error').classList.add('hidden');
+            document.getElementById('availableQuantity-error').classList.add('hidden');
         }
 
         function toggleSidebar() {
@@ -504,6 +445,13 @@
                 icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />`;
             }
         }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAdmin = await checkAdmin();
+            if (isAdmin) {
+                loadEvents();
+            }
+        });
     </script>
 </body>
 </html>

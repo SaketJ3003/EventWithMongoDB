@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import FeatureImageUploadView, ExtraImagesUploadView, login_page, signup_page, event_list_page, event_detail_page
+from .views import FeatureImageUploadView, ExtraImagesUploadView, login_page, signup_page, event_list_page, event_detail_page, DownloadInvoiceView
 
 urlpatterns = [
     path('login/',  login_page,  name='login'),
@@ -8,4 +8,5 @@ urlpatterns = [
     path('events/<slug:slug>/', event_detail_page, name='event-detail'),
     path('events/<str:event_id>/feature-image/', FeatureImageUploadView.as_view(), name='event-feature-image'),
     path('events/<str:event_id>/extra-images/', ExtraImagesUploadView.as_view(), name='event-extra-images'),
+    path('invoice/<str:booking_reference>/download/', DownloadInvoiceView.as_view(), name='download-invoice'),
 ]

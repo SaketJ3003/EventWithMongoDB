@@ -1,0 +1,32 @@
+BOOKING CONFIRMED!
+
+Hello {{ user_name }},
+
+Thank you for booking tickets with us! Your booking is confirmed and you're all set for the event.
+
+BOOKING REFERENCE NUMBER
+{{ booking_reference }}
+
+EVENT DETAILS
+Event Name: {{ event_title }}
+Date: {{ event_date|date:"M d, Y" }}
+Time: {{ event_time|time:"g:i A" }}
+Location: {{ city }}, {{ venue }}
+
+TICKET INFORMATION
+Quantity: {{ quantity }} ticket(s)
+Price Per Ticket: ₹{{ price_per_ticket }}
+Total Amount: ₹{{ total_price }}
+
+WHAT'S NEXT?
+- Your invoice has been attached to this email
+- You can download your invoice anytime using your booking reference
+- Please keep your booking reference safe for check-in at the event
+- You'll receive a reminder email 24 hours before the event
+
+DOWNLOAD INVOICE
+{{ download_link }}
+
+If you have any questions, please contact our support team.
+
+© 2024 Event Management System. All rights reserved.

@@ -1,0 +1,27 @@
+BOOKING CANCELLED
+
+Hello {{ user_name }},
+
+Your booking has been successfully cancelled. You will receive a refund as per our refund policy.
+
+BOOKING REFERENCE
+{{ booking_reference }}
+
+EVENT
+{{ event_title }}
+
+NUMBER OF TICKETS
+{{ quantity }} ticket(s)
+
+REFUND AMOUNT
+₹{{ refund_amount }}
+
+This amount will be credited to your original payment method within 5-7 business days.
+
+THANK YOU
+
+We appreciate your interest in our events. If you change your mind or have any questions about other upcoming events, feel free to reach out to our support team.
+
+If you have any questions, please contact our support team.
+
+© 2024 Event Management System. All rights reserved.

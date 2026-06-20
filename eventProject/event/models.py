@@ -150,3 +150,39 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Ticket(models.Model):
+    event = models.OneToOneField(Event, on_delete=models.CASCADE, related_name='ticket')
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    available_quantity = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.event.title} - ${self.price}"
+
+
+class Booking(models.Model):
+    """Booking model to store user bookings"""
+    BOOKING_STATUS_CHOICES = [
+        ('confirmed', 'Confirmed'),
+        ('pending', 'Pending'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='bookings')
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='bookings')
+    quantity = models.IntegerField()
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    booking_reference = models.CharField(max_length=20, unique=True)
+    status = models.CharField(max_length=20, choices=BOOKING_STATUS_CHOICES, default='confirmed')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Booking {self.booking_reference} - {self.user.username}"

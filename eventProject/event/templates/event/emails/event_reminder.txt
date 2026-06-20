@@ -1,0 +1,34 @@
+EVENT REMINDER - YOUR EVENT IS TOMORROW!
+
+Hello {{ user_name }},
+
+This is a friendly reminder that your event is happening tomorrow! We're excited to see you there!
+
+EVENT NAME
+{{ event_title }}
+
+DATE
+{{ event_date|date:"M d, Y" }}
+
+TIME
+{{ event_time|time:"g:i A" }}
+
+VENUE
+{{ venue }}
+
+CITY
+{{ city }}
+
+YOUR BOOKING
+Booking Reference: {{ booking_reference }}
+Tickets: {{ quantity }} ticket(s)
+
+DON'T FORGET!
+- Arrive at least 15 minutes early
+- Bring your booking reference or invoice for check-in
+- Check the weather and dress appropriately
+- Have a great time at the event!
+
+If you have any questions, please contact our support team.
+
+© 2024 Event Management System. All rights reserved.

@@ -1,0 +1,20 @@
+YOUR INVOICE
+
+Hello {{ user_name }},
+
+Your invoice is attached to this email. Please keep it safe for your records.
+
+BOOKING REFERENCE
+{{ booking_reference }}
+
+EVENT
+{{ event_title }}
+
+TOTAL AMOUNT
+₹{{ total_price }}
+
+IMPORTANT: Please bring your invoice or booking reference to the event for check-in.
+
+If you have any questions, please contact our support team.
+
+© 2024 Event Management System. All rights reserved.

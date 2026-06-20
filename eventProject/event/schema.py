@@ -3,13 +3,18 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.core.paginator import Paginator
+from django.db import models
+from django.db.models import Q
 from graphene_django import DjangoObjectType
 from graphql_jwt.shortcuts import get_token
 from graphql_jwt.refresh_token.shortcuts import create_refresh_token
 from graphql_jwt.refresh_token.models import RefreshToken
 from graphql_jwt.utils import get_payload, get_user_by_payload
 from graphql_jwt.exceptions import JSONWebTokenError
-from .models import Category, EventTag, Country, State, City, Event, UserToken, EventImages
+from .models import Category, EventTag, Country, State, City, Event, UserToken, EventImages, Ticket, Booking
+from decimal import Decimal
+import uuid
+import secrets
 
 
 def _revoke_all_tokens(user):
@@ -717,6 +722,150 @@ class PaginatedEventResult(graphene.ObjectType):
     current_page = graphene.Int()
 
 
+class PaginatedBookingResult(graphene.ObjectType):
+    results      = graphene.List(lambda: BookingType)
+    total_count  = graphene.Int()
+    num_pages    = graphene.Int()
+    current_page = graphene.Int()
+
+
+# Ticket and Booking Types
+
+class TicketType(DjangoObjectType):
+    class Meta:
+        model = Ticket
+        fields = ('id', 'event', 'price', 'available_quantity', 'created_at', 'updated_at')
+
+
+class BookingType(DjangoObjectType):
+    class Meta:
+        model = Booking
+        fields = ('id', 'user', 'event', 'ticket', 'quantity', 'total_price', 'booking_reference', 'status', 'created_at', 'updated_at')
+
+
+# Ticket and Booking Mutations
+
+class BookTicketsMutation(graphene.Mutation):
+    class Arguments:
+        event_id = graphene.String(required=True)
+        quantity = graphene.Int(required=True)
+
+    success = graphene.Boolean()
+    message = graphene.String()
+    booking = graphene.Field(BookingType)
+    download_link = graphene.String()
+
+    def mutate(self, info, event_id, quantity):
+        try:
+            user = get_user_from_request(info)
+        except Exception as e:
+            return BookTicketsMutation(success=False, message=f'Authentication error: {str(e)}', booking=None, download_link=None)
+        
+        try:
+            event = Event.objects.get(id=event_id)
+        except Event.DoesNotExist:
+            return BookTicketsMutation(success=False, message='Event not found.', booking=None, download_link=None)
+        
+        try:
+            ticket = Ticket.objects.get(event=event)
+        except Ticket.DoesNotExist:
+            return BookTicketsMutation(success=False, message='Ticket information not available for this event.', booking=None, download_link=None)
+        
+        if quantity <= 0:
+            return BookTicketsMutation(success=False, message='Quantity must be greater than 0.', booking=None, download_link=None)
+        
+        if ticket.available_quantity < quantity:
+            return BookTicketsMutation(success=False, message=f'Only {ticket.available_quantity} tickets available.', booking=None, download_link=None)
+        
+        total_price = ticket.price * quantity
+        booking_reference = secrets.token_hex(5).upper()
+        
+        booking = Booking.objects.create(
+            user=user,
+            event=event,
+            ticket=ticket,
+            quantity=quantity,
+            total_price=total_price,
+            booking_reference=booking_reference,
+            status='confirmed'
+        )
+        
+        ticket.available_quantity -= quantity
+        ticket.save()
+        
+        # Send booking confirmation email
+        try:
+            from .services.email_service import send_booking_confirmation_email
+            send_booking_confirmation_email(booking)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error sending booking email: {str(e)}")
+        
+        download_link = f"/invoice/{booking_reference}/download/"
+        
+        return BookTicketsMutation(
+            success=True,
+            message='Ticket booked successfully!',
+            booking=booking,
+            download_link=download_link
+        )
+
+
+class CreateOrUpdateTicketMutation(graphene.Mutation):
+    class Arguments:
+        event_id = graphene.String(required=True)
+        price = graphene.Float(required=True)
+        available_quantity = graphene.Int(required=True)
+
+    success = graphene.Boolean()
+    message = graphene.String()
+    ticket = graphene.Field(TicketType)
+
+    def mutate(self, info, event_id, price, available_quantity):
+        try:
+            user = admin_required(info)
+        except Exception as e:
+            return CreateOrUpdateTicketMutation(success=False, message=str(e), ticket=None)
+        
+        try:
+            event = Event.objects.get(id=event_id)
+        except Event.DoesNotExist:
+            return CreateOrUpdateTicketMutation(success=False, message='Event not found.', ticket=None)
+        
+        if price < 0:
+            return CreateOrUpdateTicketMutation(success=False, message='Price must be non-negative.', ticket=None)
+        
+        if available_quantity < 0:
+            return CreateOrUpdateTicketMutation(success=False, message='Quantity must be non-negative.', ticket=None)
+        
+        try:
+            # Convert float to Decimal for database storage
+            price_decimal = Decimal(str(price))
+            
+            ticket = Ticket.objects.get(event=event)
+            ticket.price = price_decimal
+            ticket.available_quantity = available_quantity
+            ticket.save()
+            message = 'Ticket updated successfully!'
+        except Ticket.DoesNotExist:
+            # Convert float to Decimal for database storage
+            price_decimal = Decimal(str(price))
+            
+            ticket = Ticket.objects.create(
+                event=event,
+                price=price_decimal,
+                available_quantity=available_quantity
+            )
+            message = 'Ticket created successfully!'
+        
+        return CreateOrUpdateTicketMutation(
+            success=True,
+            message=message,
+            ticket=ticket
+        )
+
+
 # Mutation
 
 class Mutation(graphene.ObjectType):
@@ -748,6 +897,10 @@ class Mutation(graphene.ObjectType):
     create_event = CreateEventMutation.Field()
     update_event = UpdateEventMutation.Field()
     delete_event = DeleteEventMutation.Field()
+    # booking
+    book_tickets = BookTicketsMutation.Field()
+    # ticket
+    create_or_update_ticket = CreateOrUpdateTicketMutation.Field()
 
 
 # Query
@@ -791,6 +944,10 @@ class Query(graphene.ObjectType):
     events_by_tag      = graphene.List(EventType, tag_id=graphene.ID(required=True))
     active_events      = graphene.List(EventType)
 
+    # tickets and bookings
+    ticket_by_event_id = graphene.Field(TicketType, event_id=graphene.ID(required=True))
+    my_bookings        = graphene.List(BookingType)
+
     # paginated queries
     paginated_categories = graphene.Field(PaginatedCategoryResult, page=graphene.Int(), page_size=graphene.Int(), search=graphene.String())
     paginated_tags       = graphene.Field(PaginatedTagResult,       page=graphene.Int(), page_size=graphene.Int(), search=graphene.String())
@@ -799,6 +956,7 @@ class Query(graphene.ObjectType):
     paginated_cities     = graphene.Field(PaginatedCityResult,      page=graphene.Int(), page_size=graphene.Int(), search=graphene.String(), state_id=graphene.ID(), country_id=graphene.ID())
     paginated_events        = graphene.Field(PaginatedEventResult, page=graphene.Int(), page_size=graphene.Int(), search=graphene.String(), category_id=graphene.ID(), tag_id=graphene.ID(), status=graphene.String())
     paginated_active_events = graphene.Field(PaginatedEventResult, page=graphene.Int(), page_size=graphene.Int(), search=graphene.String())
+    all_bookings            = graphene.Field(PaginatedBookingResult, page=graphene.Int(), page_size=graphene.Int(), search=graphene.String(), status=graphene.String())
 
     # resolvers
 
@@ -1013,6 +1171,51 @@ class Query(graphene.ObjectType):
         paginator = Paginator(qs.distinct(), page_size)
         p = paginator.get_page(page)
         return PaginatedEventResult(results=list(p), total_count=paginator.count, num_pages=paginator.num_pages, current_page=p.number)
+
+    def resolve_ticket_by_event_id(self, info, event_id):
+        try:
+            return Ticket.objects.get(event__id=event_id)
+        except Ticket.DoesNotExist:
+            return None
+
+    def resolve_my_bookings(self, info):
+        user = get_user_from_request(info)
+        return Booking.objects.filter(user=user).order_by('-created_at')
+
+    def resolve_all_bookings(self, info, page=1, page_size=10, search=None, status=None):
+        try:
+            admin_required(info)
+        except Exception:
+            return PaginatedBookingResult(results=[], total_count=0, num_pages=0, current_page=0)
+        
+        bookings = Booking.objects.all().order_by('-created_at')
+        
+        if search:
+            search = search.lower()
+            bookings = bookings.filter(
+                Q(booking_reference__icontains=search) |
+                Q(user__username__icontains=search) |
+                Q(user__email__icontains=search) |
+                Q(user__first_name__icontains=search) |
+                Q(user__last_name__icontains=search) |
+                Q(event__title__icontains=search)
+            )
+        
+        if status:
+            bookings = bookings.filter(status=status)
+        
+        paginator = Paginator(bookings, page_size)
+        try:
+            page_obj = paginator.page(page)
+        except:
+            return PaginatedBookingResult(results=[], total_count=0, num_pages=0, current_page=0)
+        
+        return PaginatedBookingResult(
+            results=page_obj.object_list,
+            total_count=paginator.count,
+            num_pages=paginator.num_pages,
+            current_page=page
+        )
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

@@ -31,3 +31,11 @@ def create_event(request):
 
 def edit_event(request):
     return render(request, 'admin_panel/edit_event.html')
+
+
+def tickets(request):
+    return render(request, 'admin_panel/tickets.html')
+
+
+def bookings(request):
+    return render(request, 'admin_panel/bookings.html')

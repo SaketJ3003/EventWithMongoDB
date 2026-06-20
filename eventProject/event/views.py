@@ -1,11 +1,17 @@
 from django.shortcuts import render
+from django.http import FileResponse, HttpResponse
+from django.views import View
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser
 from rest_framework.parsers import MultiPartParser, FormParser
-from .models import Event
+from .models import Event, Booking
 from .serializers import ExtraImagesResponseSerializer, FeatureImageSerializer, EventImageSerializer
+from .services.invoice_service import generate_invoice_pdf
+from io import BytesIO
+import os
+import tempfile
 
 
 class FeatureImageUploadView(APIView):
@@ -128,3 +134,28 @@ def event_list_page(request):
 
 def event_detail_page(request, slug):
     return render(request, 'event/event_detail.html')
+
+
+class DownloadInvoiceView(View):
+    """Download invoice PDF for a booking"""
+    
+    def get(self, request, booking_reference):
+        try:
+            booking = Booking.objects.get(booking_reference=booking_reference)
+        except Booking.DoesNotExist:
+            return HttpResponse("Booking not found", status=404)
+        
+        # Check if user has permission to download this invoice
+        if request.user.is_authenticated and request.user != booking.user:
+            if not (request.user.is_staff or request.user.is_superuser):
+                return HttpResponse("You don't have permission to download this invoice", status=403)
+        
+        # Generate PDF
+        pdf_buffer = generate_invoice_pdf(booking)
+        
+        # Return PDF as response
+        response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="invoice_{booking_reference}.pdf"'
+        
+        return response
+

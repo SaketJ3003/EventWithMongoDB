@@ -1,0 +1,12 @@
+Django==6.0.3
+django-mongodb-backend==6.0.3
+djangorestframework==3.14.0
+graphene==3.3
+graphene-django==3.1.1
+django-graphql-jwt==0.4.0
+reportlab>=3.6.0
+Pillow>=9.0.0
+qrcode[pil]>=7.4.0
+gunicorn>=21.0.0
+whitenoise>=6.6.0
+python-decouple>=3.8
