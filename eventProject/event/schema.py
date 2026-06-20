@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 import graphene
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
@@ -1066,11 +1067,11 @@ class Query(graphene.ObjectType):
         return City.objects.filter(state_id=state_id)
 
     def resolve_all_events(self, info):
-        return Event.objects.all().order_by('id')
+        return Event.objects.prefetch_related('country', 'state', 'city', 'category', 'tags', 'extraImages').all().order_by('id')
 
     def resolve_event_by_id(self, info, id):
         try:
-            event = Event.objects.get(pk=id)
+            event = Event.objects.prefetch_related('country', 'state', 'city', 'category', 'tags', 'extraImages').get(pk=id)
             event.views_count += 1
             event.save()
             return event
@@ -1079,7 +1080,7 @@ class Query(graphene.ObjectType):
 
     def resolve_event_by_slug(self, info, slug):
         try:
-            event = Event.objects.get(slug=slug)
+            event = Event.objects.prefetch_related('country', 'state', 'city', 'category', 'tags', 'extraImages').get(slug=slug)
             event.views_count += 1
             event.save()
 
@@ -1088,13 +1089,13 @@ class Query(graphene.ObjectType):
             return None
 
     def resolve_events_by_category(self, info, category_id):
-        return Event.objects.filter(category__id=category_id)
+        return Event.objects.prefetch_related('country', 'state', 'city', 'category', 'tags', 'extraImages').filter(category__id=category_id)
 
     def resolve_events_by_tag(self, info, tag_id):
-        return Event.objects.filter(tags__id=tag_id)
+        return Event.objects.prefetch_related('country', 'state', 'city', 'category', 'tags', 'extraImages').filter(tags__id=tag_id)
 
     def resolve_active_events(self, info):
-        return Event.objects.filter(is_active=True)
+        return Event.objects.prefetch_related('country', 'state', 'city', 'category', 'tags', 'extraImages').filter(is_active=True)
 
     def resolve_paginated_categories(self, info, page=1, page_size=10, search=None):
         admin_required(info)
@@ -1148,7 +1149,7 @@ class Query(graphene.ObjectType):
         return PaginatedCityResult(results=list(p), total_count=paginator.count, num_pages=paginator.num_pages, current_page=p.number)
 
     def resolve_paginated_active_events(self, info, page=1, page_size=10, search=None):
-        qs = Event.objects.filter(is_active=True).order_by('event_date')
+        qs = Event.objects.prefetch_related('country', 'state', 'city', 'category', 'tags', 'extraImages').filter(is_active=True).order_by('event_date')
         if search:
             qs = qs.filter(title__icontains=search)
         paginator = Paginator(qs, page_size)
@@ -1157,7 +1158,7 @@ class Query(graphene.ObjectType):
 
     def resolve_paginated_events(self, info, page=1, page_size=10, search=None, category_id=None, tag_id=None, status=None):
         admin_required(info)
-        qs = Event.objects.all().order_by('id')
+        qs = Event.objects.prefetch_related('country', 'state', 'city', 'category', 'tags', 'extraImages').all().order_by('id')
         if search:
             qs = qs.filter(title__icontains=search) | Event.objects.filter(slug__icontains=search)
         if category_id:
