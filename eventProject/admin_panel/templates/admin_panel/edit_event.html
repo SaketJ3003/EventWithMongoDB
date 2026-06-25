@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,7 +36,13 @@
     <header class="admin-topbar">
       <button class="topbar-toggle" onclick="document.getElementById('sidebar').classList.toggle('collapsed')"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <span class="topbar-title">Edit Event</span>
-      <button onclick="goBack()" class="btn btn-ghost btn-sm" style="margin-left:auto">← Back to Dashboard</button>
+      <button class="topbar-theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle dark/light mode" aria-label="Toggle theme">
+        <span class="tt-icon tt-moon">🌙</span>
+        <div class="tt-track"><div class="tt-thumb"></div></div>
+        <span class="tt-icon tt-sun">☀️</span>
+        <span class="tt-label" id="themeLabel">Dark</span>
+      </button>
+      <button onclick="goBack()" class="btn btn-ghost btn-sm">← Back to Dashboard</button>
     </header>
     <div class="admin-content">
       <div id="successMessage" style="display:none" class="admin-alert admin-alert-success show"></div>
@@ -50,211 +56,181 @@
                 <p class="text-gray-500 text-lg">Loading event data...</p>
             </div>
 
-            <form id="editEventForm" onsubmit="submitEvent(event)" class="space-y-6 hidden">
+            <form id="editEventForm" onsubmit="submitEvent(event)" style="display:none">
                 {% csrf_token %}
                 <input type="hidden" id="eventSlug">
-                <div class="border-b pb-6">                    
-                    <div class="space-y-4">
+                
+                <div class="form-section">
+                    <h3 class="form-section-title">Basic Details</h3>
+                    <div class="form-grid-2">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Event Title *</label>
-                            <input type="text" id="title" name="title"
-                                placeholder="Enter event title"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <span id="title-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            <label class="form-label">Event Title *</label>
+                            <input type="text" id="title" name="title" placeholder="Enter event title" class="form-input">
+                            <span id="title-error" class="form-error" style="display:none"></span>
                         </div>
-
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
-                            <input type="text" id="slug" name="slug" readonly
-                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl bg-gray-100 text-gray-600">
-                            <p class="text-xs text-gray-500 mt-1">Slug cannot be changed</p>
+                            <label class="form-label">Slug</label>
+                            <input type="text" id="slug" name="slug" readonly class="form-input" style="background:var(--surface-2);color:var(--text-3);opacity:0.8">
+                            <p style="font-size:0.75rem;color:var(--text-4);margin-top:4px">Slug cannot be changed</p>
                         </div>
+                    </div>
+                    <div style="margin-top:16px">
+                        <label class="form-label">Short Description *</label>
+                        <textarea id="shortDescription" name="short_description" placeholder="Brief description (max 255 characters)" maxlength="255" class="form-input" style="min-height:60px"></textarea>
+                        <span id="shortDescription-error" class="form-error" style="display:none"></span>
+                    </div>
+                    <div style="margin-top:16px">
+                        <label class="form-label">Long Description *</label>
+                        <textarea id="longDescription" name="long_description" placeholder="Detailed event description" class="form-input"></textarea>
+                        <span id="longDescription-error" class="form-error" style="display:none"></span>
+                    </div>
+                </div>
 
+                <div class="form-section">
+                    <h3 class="form-section-title">Date & Time</h3>
+                    <div class="form-grid-3">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Short Description *</label>
-                            <textarea id="shortDescription" name="short_description"
-                                placeholder="Brief description (max 255 characters)"
-                                maxlength="255"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                rows="2"></textarea>
-                            <span id="shortDescription-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            <label class="form-label">Event Date *</label>
+                            <input type="date" id="eventDate" name="event_date" class="form-input">
+                            <span id="eventDate-error" class="form-error" style="display:none"></span>
                         </div>
-
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Long Description *</label>
-                            <textarea id="longDescription" name="long_description"
-                                placeholder="Detailed event description"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                rows="4"></textarea>
-                            <span id="longDescription-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            <label class="form-label">Start Time *</label>
+                            <input type="time" id="startTime" name="start_time" class="form-input">
+                            <span id="startTime-error" class="form-error" style="display:none"></span>
+                        </div>
+                        <div>
+                            <label class="form-label">End Time *</label>
+                            <input type="time" id="endTime" name="end_time" class="form-input">
+                            <span id="endTime-error" class="form-error" style="display:none"></span>
                         </div>
                     </div>
                 </div>
 
-                <div class="border-b pb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Date & Time</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="form-section">
+                    <h3 class="form-section-title">Location</h3>
+                    <div style="margin-bottom:16px">
+                        <label class="form-label">Venue</label>
+                        <input type="text" id="venue" name="venue" placeholder="Event venue name" class="form-input">
+                        <span id="venue-error" class="form-error" style="display:none"></span>
+                    </div>
+                    <div class="form-grid-3">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Event Date *</label>
-                            <input type="date" id="eventDate" name="event_date"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <span id="eventDate-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            <label class="form-label">Country *</label>
+                            <select id="country" name="country" onchange="loadStates()" required class="form-input">
+                                <option value="">Select Country</option>
+                            </select>
+                            <span id="country-error" class="form-error" style="display:none"></span>
                         </div>
-
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
-                            <input type="time" id="startTime" name="start_time"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <span id="startTime-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            <label class="form-label">State *</label>
+                            <select id="state" name="state" onchange="loadCities()" required disabled class="form-input">
+                                <option value="">Select State</option>
+                            </select>
+                            <span id="state-error" class="form-error" style="display:none"></span>
                         </div>
-
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">End Time *</label>
-                            <input type="time" id="endTime" name="end_time"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <span id="endTime-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            <label class="form-label">City *</label>
+                            <select id="city" name="city" required disabled class="form-input">
+                                <option value="">Select City</option>
+                            </select>
+                            <span id="city-error" class="form-error" style="display:none"></span>
                         </div>
                     </div>
                 </div>
 
-                <div class="border-b pb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Location</h3>
-                    
-                    <div class="space-y-4">
+                <div class="form-section">
+                    <h3 class="form-section-title">Categories & Tags</h3>
+                    <div class="form-grid-2">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Venue</label>
-                            <input type="text" id="venue" name="venue" 
-                                placeholder="Event venue name"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <span id="venue-error" class="hidden text-red-500 text-xs mt-1 block"></span>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Country *</label>
-                                <select id="country" name="country" onchange="loadStates()" required
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option value="">Select Country</option>
-                                </select>
-                                <span id="country-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            <label class="form-label">Categories *</label>
+                            <div class="form-checkbox-grid" id="categoriesOptions">
+                                <p style="color:var(--text-4);font-size:0.875rem">Loading categories...</p>
                             </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">State *</label>
-                                <select id="state" name="state" onchange="loadCities()" required disabled
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option value="">Select State</option>
-                                </select>
-                                <span id="state-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            <div id="selectedCategoriesBadges" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px"></div>
+                            <span id="categories-error" class="form-error" style="display:none"></span>
+                        </div>
+                        <div>
+                            <label class="form-label">Tags</label>
+                            <div class="form-checkbox-grid" id="tagsOptions">
+                                <p style="color:var(--text-4);font-size:0.875rem">Loading tags...</p>
                             </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
-                                <select id="city" name="city" required disabled
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option value="">Select City</option>
-                                </select>
-                                <span id="city-error" class="hidden text-red-500 text-xs mt-1 block"></span>
-                            </div>
+                            <div id="selectedTagsBadges" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px"></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="border-b pb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Categories & Tags</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-section">
+                    <h3 class="form-section-title">Images</h3>
+                    <div class="form-grid-2">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Categories *</label>
-                            <div class="relative">
-                                <button type="button" id="categoriesDropdownBtn" onclick="toggleDropdown('categories')" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-3xl bg-white text-left flex justify-between items-center focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <span id="categoriesPlaceholder" class="text-gray-500">Select categories...</span>
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </button>
-                                <div id="categoriesDropdown" class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-3xl shadow-lg max-h-60 overflow-y-auto">
-                                    <div id="categoriesOptions" class="p-2">
-                                        <p class="text-gray-500 text-sm p-2">Loading categories...</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="selectedCategoriesBadges" class="mt-2 flex flex-wrap gap-2"></div>
-                            <span id="categories-error" class="hidden text-red-500 text-xs mt-1 block"></span>
+                            <label class="form-label">Current Feature Image</label>
+                            <div id="currentFeatureImage" style="margin-bottom:12px"></div>
+                            <label class="form-label">Update Feature Image</label>
+                            <input type="file" id="featureImage" name="feature_image" accept="image/*" class="form-input" style="padding:6px;font-size:0.875rem" onchange="previewFeatureImage()">
+                            <span id="featureImage-error" class="form-error" style="display:none"></span>
+                            <div id="featureImagePreview" class="img-preview" style="display:none"></div>
                         </div>
-
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
-                            <div class="relative">
-                                <button type="button" id="tagsDropdownBtn" onclick="toggleDropdown('tags')" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-3xl bg-white text-left flex justify-between items-center focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <span id="tagsPlaceholder" class="text-gray-500">Select tags...</span>
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </button>
-                                <div id="tagsDropdown" class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-3xl shadow-lg max-h-60 overflow-y-auto">
-                                    <div id="tagsOptions" class="p-2">
-                                        <p class="text-gray-500 text-sm p-2">Loading tags...</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="selectedTagsBadges" class="mt-2 flex flex-wrap gap-2"></div>
+                            <label class="form-label">Current Gallery</label>
+                            <div id="currentExtraImages" class="extra-imgs-grid" style="margin-bottom:12px;margin-top:0"></div>
+                            <label class="form-label">Add Gallery Images</label>
+                            <input type="file" id="extraImages" name="extra_images" accept="image/*" multiple class="form-input" style="padding:6px;font-size:0.875rem" onchange="previewExtraImages()">
+                            <span id="extraImages-error" class="form-error" style="display:none"></span>
+                            <div id="extraImagesPreview" class="extra-imgs-grid"></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="border-b pb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Images</h3>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Current Feature Image</label>
-                            <div id="currentFeatureImage" class="mb-2"></div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Update Feature Image</label>
-                            <input type="file" id="featureImage" name="feature_image" accept="image/*"
-                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-3xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                onchange="previewFeatureImage()">
-                            <span id="featureImage-error" class="hidden text-red-500 text-xs mt-1 block"></span>
-                            <div id="featureImagePreview"></div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Current Gallery</label>
-                            <div id="currentExtraImages" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2"></div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Add Gallery</label>
-                            <input type="file" id="extraImages" name="extra_images" accept="image/*" multiple
-                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-3xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                onchange="previewExtraImages()">
-                            <span id="extraImages-error" class="hidden text-red-500 text-xs mt-1 block"></span>
-                            <div id="extraImagesPreview" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
-                        </div>
-                    </div>
+                <div class="form-section">
+                    <h3 class="form-section-title">Status</h3>
+                    <label class="form-checkbox-item" style="width:fit-content;background:transparent;border:none;padding:0">
+                        <input type="checkbox" id="isActive" name="is_active" class="toggle-input" style="position:static;opacity:1">
+                        <span>Event is Active</span>
+                    </label>
                 </div>
 
-                <div class="pb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Status</h3>
-                    <div class="flex items-center">
-                        <input type="checkbox" id="isActive" name="is_active" class="rounded border-gray-300">
-                        <label for="isActive" class="ml-2 text-sm text-gray-700">Event is Active</label>
-                    </div>
-                </div>
-
-                <div class="flex gap-4 pt-6">
-                    <button type="submit" class="btn btn-primary" style="flex:1" id="submitBtn">
-                        Update Event
-                    </button>
-                    <button type="button" onclick="goBack()" class="btn btn-ghost">
-                        Cancel
-                    </button>
+                <div style="display:flex; gap:16px; margin-top:24px">
+                    <button type="submit" class="btn btn-primary" style="flex:1" id="submitBtn">Update Event</button>
+                    <button type="button" onclick="goBack()" class="btn btn-ghost">Cancel</button>
                 </div>
             </form>
-        </div><!-- /event-form-card -->
-      </div><!-- /event-form-wrap -->
+    </div><!-- /event-form-card -->
+  </div><!-- /event-form-wrap -->
+
+<!-- Notification / Confirm Modal -->
+<div id="notifModalOverlay" class="modal-overlay">
+  <div id="notifModalBox" class="modal" style="max-width:420px; padding: 32px 28px 24px; display: flex; flex-direction: column; gap: 16px;">
+    <div id="notifModalIcon" style="font-size: 2.4rem; text-align: center; line-height: 1;"></div>
+    <h3 id="notifModalTitle" style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text); text-align: center; margin: 0;"></h3>
+    <p id="notifModalMessage" style="font-size: 0.9rem; color: var(--text-2); text-align: center; line-height: 1.55; white-space: pre-wrap; word-break: break-word;"></p>
+    <div id="notifModalActions" style="display: flex; gap: 10px; margin-top: 4px;">
+      <button id="notifModalCancel" class="btn btn-ghost" style="display:none; flex:1;" onclick="_notifResolve(false)">Cancel</button>
+      <button id="notifModalOk" class="btn btn-danger" style="flex:1;" onclick="_notifResolve(true)">OK</button>
+    </div>
+  </div>
+</div>
 
     <script>
+        /* ---- Theme Toggle ---- */
+        (function(){
+          const saved=localStorage.getItem('adminTheme')||'dark';
+          document.documentElement.setAttribute('data-theme',saved);
+        })();
+        function toggleTheme(){
+          const html=document.documentElement;
+          const next=html.getAttribute('data-theme')==='dark'?'light':'dark';
+          html.setAttribute('data-theme',next);
+          localStorage.setItem('adminTheme',next);
+          const lbl=document.getElementById('themeLabel');
+          if(lbl)lbl.textContent=next==='dark'?'Dark':'Light';
+        }
+        function applyThemeLabel(){
+          const lbl=document.getElementById('themeLabel');
+          if(lbl)lbl.textContent=document.documentElement.getAttribute('data-theme')==='dark'?'Dark':'Light';
+        }
+        document.addEventListener('DOMContentLoaded',applyThemeLabel);
+
         let selectedCategories = [];
         let selectedTags = [];
         let allCategories = [];
@@ -275,6 +251,25 @@
             window.location.href = '/admin-panel/dashboard/';
         }
 
+        /* ── Notification Modal ── */
+        let _notifResolve=null;
+        function _notifOpen(icon,title,msg,type,showCancel){
+          return new Promise(resolve=>{
+            _notifResolve=v=>{document.getElementById('notifModalOverlay').classList.remove('open');resolve(v);};
+            const o=document.getElementById('notifModalOverlay');
+            o.setAttribute('data-type',type);
+            document.getElementById('notifModalIcon').textContent=icon;
+            document.getElementById('notifModalTitle').textContent=title;
+            document.getElementById('notifModalMessage').textContent=msg;
+            document.getElementById('notifModalCancel').style.display=showCancel?'':'none';
+            document.getElementById('notifModalOk').textContent=showCancel?'Delete':'OK';
+            o.classList.add('open');
+          });
+        }
+        function showNotif(msg,type='info'){const i={success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};const t={success:'Success',error:'Error',warning:'Warning',info:'Notice'};return _notifOpen(i[type]||'ℹ️',t[type]||'Notice',msg,type,false);}
+        function showConfirm(msg,title='Are you sure?',icon='🗑'){return _notifOpen(icon,title,msg,'confirm',true);}
+        document.getElementById('notifModalOverlay').addEventListener('click',function(e){if(e.target===this&&_notifResolve)_notifResolve(false);});
+
         async function checkAdmin() {
             const accessToken = localStorage.getItem('access_token');
             if (!accessToken) {
@@ -291,7 +286,7 @@
                 const data = await res.json();
                 const user = data.data && data.data.me;
                 if (!user || (!user.isStaff && !user.isSuperuser)) {
-                    alert('Only admins can edit events');
+                    await showNotif('Only admins can edit events', 'error');
                     window.location.href = '/events/';
                     return false;
                 }
@@ -325,35 +320,31 @@
 
         function renderCategories() {
             const container = document.getElementById('categoriesOptions');
-            container.innerHTML = allCategories.map(cat => {
-                const isSelected = selectedCategories.includes(cat.id);
-                return `
-                    <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
-                        <input type="checkbox" value="${cat.id}" 
-                            ${isSelected ? 'checked' : ''}
-                            onchange="toggleCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}')"
-                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        <span class="ml-2 text-sm text-gray-700">${cat.name}</span>
-                    </label>
-                `;
-            }).join('');
+            if (!allCategories.length) { container.innerHTML = '<span style="color:var(--text-4);font-size:.875rem">No categories available</span>'; return; }
+            container.innerHTML = allCategories.map(cat => `
+                <label class="form-checkbox-item">
+                    <input type="checkbox" value="${cat.id}"
+                        ${selectedCategories.includes(cat.id) ? 'checked' : ''}
+                        onchange="toggleCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}')"
+                        class="toggle-input" style="position:static;opacity:1;width:15px;height:15px;accent-color:var(--accent)">
+                    <span>${cat.name}</span>
+                </label>
+            `).join('');
             updateCategoriesBadges();
         }
 
         function renderTags() {
             const container = document.getElementById('tagsOptions');
-            container.innerHTML = allTags.map(tag => {
-                const isSelected = selectedTags.includes(tag.id);
-                return `
-                    <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
-                        <input type="checkbox" value="${tag.id}" 
-                            ${isSelected ? 'checked' : ''}
-                            onchange="toggleTag('${tag.id}', '${tag.name.replace(/'/g, "\\'")}')"
-                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        <span class="ml-2 text-sm text-gray-700">${tag.name}</span>
-                    </label>
-                `;
-            }).join('');
+            if (!allTags.length) { container.innerHTML = '<span style="color:var(--text-4);font-size:.875rem">No tags available</span>'; return; }
+            container.innerHTML = allTags.map(tag => `
+                <label class="form-checkbox-item">
+                    <input type="checkbox" value="${tag.id}"
+                        ${selectedTags.includes(tag.id) ? 'checked' : ''}
+                        onchange="toggleTag('${tag.id}', '${tag.name.replace(/'/g, "\\'")}')"
+                        style="position:static;opacity:1;width:15px;height:15px;accent-color:var(--accent)">
+                    <span>${tag.name}</span>
+                </label>
+            `).join('');
             updateTagsBadges();
         }
 
@@ -378,59 +369,19 @@
 
         function updateCategoriesBadges() {
             const container = document.getElementById('selectedCategoriesBadges');
-            const placeholder = document.getElementById('categoriesPlaceholder');
-            
-            if (selectedCategories.length === 0) {
-                container.innerHTML = '';
-                placeholder.textContent = 'Select categories...';
-                placeholder.classList.add('text-gray-500');
-                placeholder.classList.remove('text-gray-900');
-                return;
-            }
-            
-            placeholder.textContent = `${selectedCategories.length} selected`;
-            placeholder.classList.remove('text-gray-500');
-            placeholder.classList.add('text-gray-900');
-            
+            if (selectedCategories.length === 0) { container.innerHTML = ''; return; }
             const selectedCats = allCategories.filter(cat => selectedCategories.includes(cat.id));
             container.innerHTML = selectedCats.map(cat => `
-                <span class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-3xl">
-                    ${cat.name}
-                    <button type="button" onclick="removeCategory('${cat.id}')" class="hover:bg-blue-200 rounded-3xl p-0.5">
-                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                        </svg>
-                    </button>
-                </span>
+                <span class="badge badge-green" style="cursor:pointer" onclick="removeCategory('${cat.id}')">${cat.name} ✕</span>
             `).join('');
         }
 
         function updateTagsBadges() {
             const container = document.getElementById('selectedTagsBadges');
-            const placeholder = document.getElementById('tagsPlaceholder');
-            
-            if (selectedTags.length === 0) {
-                container.innerHTML = '';
-                placeholder.textContent = 'Select tags...';
-                placeholder.classList.add('text-gray-500');
-                placeholder.classList.remove('text-gray-900');
-                return;
-            }
-            
-            placeholder.textContent = `${selectedTags.length} selected`;
-            placeholder.classList.remove('text-gray-500');
-            placeholder.classList.add('text-gray-900');
-            
+            if (selectedTags.length === 0) { container.innerHTML = ''; return; }
             const selectedTagsData = allTags.filter(tag => selectedTags.includes(tag.id));
             container.innerHTML = selectedTagsData.map(tag => `
-                <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 text-sm rounded-3xl">
-                    ${tag.name}
-                    <button type="button" onclick="removeTag('${tag.id}')" class="hover:bg-green-200 rounded-3xl p-0.5">
-                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                        </svg>
-                    </button>
-                </span>
+                <span class="badge badge-dark" style="cursor:pointer" onclick="removeTag('${tag.id}')">${tag.name} ✕</span>
             `).join('');
         }
 
@@ -475,16 +426,17 @@
             const file = document.getElementById('featureImage').files[0];
             const preview = document.getElementById('featureImagePreview');
             preview.innerHTML = '';
+            preview.style.display = 'none';
 
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    preview.style.display = 'block';
                     preview.innerHTML = `
-                        <div class="mt-3 relative inline-block">
-                            <img src="${e.target.result}" class="h-32 w-32 object-cover rounded" alt="Preview">
-                            <button type="button" onclick="removeNewFeatureImage()"
-                                class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-3xl w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 leading-none">✕</button>
-                            <p class="text-xs text-gray-500 mt-1">New image</p>
+                        <div style="position:relative">
+                            <img src="${e.target.result}" alt="Feature Preview" style="width:100%;max-height:200px;object-fit:cover;display:block">
+                            <button type="button" onclick="removeNewFeatureImage()" class="extra-img-remove">✕</button>
+                            <p style="font-size:0.75rem;color:var(--text-4);margin-top:4px">New image</p>
                         </div>
                     `;
                 };
@@ -520,11 +472,10 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const div = document.createElement('div');
-                    div.className = 'relative w-fit';
+                    div.className = 'extra-img-thumb';
                     div.innerHTML = `
-                        <img src="${e.target.result}" class="h-24 w-24 object-cover rounded" alt="Preview">
-                        <button type="button" onclick="removeNewExtraImage(${index})"
-                            class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-3xl w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 leading-none">✕</button>`;
+                        <img src="${e.target.result}" alt="Preview">
+                        <button type="button" onclick="removeNewExtraImage(${index})" class="extra-img-remove">✕</button>`;
                     preview.appendChild(div);
                 };
                 reader.readAsDataURL(file);
@@ -658,8 +609,8 @@
                 if (event) {
                     currentEvent = event;
                     populateForm(currentEvent);
-                    document.getElementById('loadingContainer').classList.add('hidden');
-                    document.getElementById('editEventForm').classList.remove('hidden');
+                    document.getElementById('loadingContainer').style.display = 'none';
+                    document.getElementById('editEventForm').style.display = 'block';
                 } else {
                     showError('Failed to load event data');
                     setTimeout(() => window.location.href = '/admin-panel/dashboard/', 2000);
@@ -710,10 +661,9 @@
 
             if (event.featureImage) {
                 document.getElementById('currentFeatureImage').innerHTML = `
-                    <div class="relative inline-block">
-                        <img src="${event.featureImage}" class="h-32 w-32 object-cover rounded" alt="Current feature image">
-                        <button type="button" onclick="removeCurrentFeatureImage()"
-                            class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-3xl w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 leading-none">✕</button>
+                    <div class="img-preview" style="position:relative">
+                        <img src="${event.featureImage}" alt="Current feature image" style="width:100%;max-height:200px;object-fit:cover;display:block">
+                        <button type="button" onclick="removeCurrentFeatureImage()" class="extra-img-remove">✕</button>
                     </div>
                 `;
             }
@@ -721,10 +671,9 @@
             if (event.extraImages && Array.isArray(event.extraImages)) {
                 const container = document.getElementById('currentExtraImages');
                 container.innerHTML = event.extraImages.map(imgObj => `
-                    <div class="relative w-fit">
-                        <img src="${imgObj.image}" class="h-24 w-24 object-cover rounded" alt="Extra image">
-                        <button type="button" onclick="removeCurrentGalleryImage('${imgObj.id}', this.parentElement)"
-                            class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-3xl w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 leading-none">✕</button>
+                    <div class="extra-img-thumb">
+                        <img src="${imgObj.image}" alt="Extra image">
+                        <button type="button" onclick="removeCurrentGalleryImage('${imgObj.id}', this.parentElement)" class="extra-img-remove">✕</button>
                     </div>
                 `).join('');
             }
@@ -734,7 +683,7 @@
             event.preventDefault();
 
             if (!validateForm()) {
-                const firstError = document.querySelector('[id$="-error"]:not(.hidden)');
+                const firstError = Array.from(document.querySelectorAll('[id$="-error"]')).find(el => el.style.display !== 'none');
                 if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
@@ -837,23 +786,26 @@
 
         function showSuccess(message) {
             const el = document.getElementById('successMessage');
-            el.textContent = message;
-            el.classList.remove('hidden');
-            document.getElementById('errorMessage').classList.add('hidden');
+            if(el) {
+                el.textContent = message;
+                el.style.display = 'block';
+            }
+            const errEl = document.getElementById('errorMessage');
+            if(errEl) errEl.style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function showError(message) {
             const el = document.getElementById('errorMessage');
-            
+            if(!el) return;
             if (Array.isArray(message)) {
-                el.innerHTML = message.map(msg => `<div class="mb-2 last:mb-0">• ${msg}</div>`).join('');
+                el.innerHTML = message.map(msg => `<div>• ${msg}</div>`).join('');
             } else {
                 el.textContent = message;
             }
-            
-            el.classList.remove('hidden');
-            document.getElementById('successMessage').classList.add('hidden');
+            el.style.display = 'block';
+            const succEl = document.getElementById('successMessage');
+            if(succEl) succEl.style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -918,14 +870,11 @@
             if (!errSpan) return;
 
             if (input) {
-                const hasValue = input.files ? input.files.length > 0 : !!input.value;
-                input.classList.toggle('border-red-500',   !!errorMessage);
-                input.classList.toggle('border-green-500', !errorMessage && hasValue);
-                input.classList.toggle('border-gray-300',  !errorMessage && !hasValue);
+                input.style.borderColor = errorMessage ? 'var(--red)' : '';
             }
 
-            errSpan.textContent = errorMessage;
-            errSpan.classList.toggle('hidden', !errorMessage);
+            errSpan.textContent = errorMessage || '';
+            errSpan.style.display = errorMessage ? 'block' : 'none';
         }
 
         function validateEventField(fieldId, value) {
@@ -985,17 +934,10 @@
 
         function showCategoriesError() {
             const errSpan = document.getElementById('categories-error');
-            const btn     = document.getElementById('categoriesDropdownBtn');
             const error   = selectedCategories.length === 0 ? 'At least one category is required.' : '';
-
             if (errSpan) {
                 errSpan.textContent = error;
-                errSpan.classList.toggle('hidden', !error);
-            }
-            if (btn) {
-                btn.classList.toggle('border-red-500',   !!error);
-                btn.classList.toggle('border-green-500', !error);
-                btn.classList.toggle('border-gray-300',  !!error);
+                errSpan.style.display = error ? 'block' : 'none';
             }
         }
 
@@ -1019,7 +961,7 @@
 
             const errorMsg = errors.join(' ');
             errSpan.textContent = errorMsg;
-            errSpan.classList.toggle('hidden', !errorMsg);
+            errSpan.style.display = errorMsg ? 'block' : 'none';
             return errorMsg;
         }
 

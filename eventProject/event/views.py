@@ -145,6 +145,10 @@ def event_detail_page(request, slug):
     return render(request, 'event/event_detail.html')
 
 
+def my_bookings_page(request):
+    return render(request, 'event/my_bookings.html')
+
+
 class DownloadInvoiceView(View):
     """Download invoice PDF for a booking"""
     

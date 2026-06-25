@@ -11,11 +11,14 @@ from graphql_jwt.refresh_token.shortcuts import create_refresh_token
 from graphql_jwt.refresh_token.models import RefreshToken
 from graphql_jwt.utils import get_payload, get_user_by_payload
 from graphql_jwt.exceptions import JSONWebTokenError
+import re
+import secrets
+import razorpay
+from django.conf import settings
 from .models import Category, EventTag, Country, State, City, Event, UserToken, EventImages, Ticket, Booking
 from decimal import Decimal
 from django.core.cache import cache
 import uuid
-import secrets
 import hashlib
 import json
 
@@ -116,8 +119,12 @@ class EventImagesType(DjangoObjectType):
         fields = ('id', 'image', 'created_at', 'updated_at')
 
     def resolve_image(self, info):
-        # Returns base64 data URL string stored in MongoDB
-        return self.image or None
+        if not self.image:
+            return None
+        if self.image.startswith('data:image') or self.image.startswith('http'):
+            return self.image
+        request = info.context
+        return request.build_absolute_uri(f'/media/{self.image}')
 
 
 class EventType(DjangoObjectType):
@@ -136,8 +143,12 @@ class EventType(DjangoObjectType):
         )
 
     def resolve_feature_image(self, info):
-        # Returns base64 data URL string stored in MongoDB
-        return self.feature_image or None
+        if not self.feature_image:
+            return None
+        if self.feature_image.startswith('data:image') or self.feature_image.startswith('http'):
+            return self.feature_image
+        request = info.context
+        return request.build_absolute_uri(f'/media/{self.feature_image}')
 
     def resolve_extra_images(self, info):
         return self.extraImages.all()
@@ -754,9 +765,21 @@ class TicketType(DjangoObjectType):
 
 
 class BookingType(DjangoObjectType):
+    user = graphene.Field(UserType)
+
     class Meta:
         model = Booking
-        fields = ('id', 'user', 'event', 'ticket', 'quantity', 'total_price', 'booking_reference', 'status', 'created_at', 'updated_at')
+        fields = ('id', 'event', 'ticket', 'quantity', 'total_price', 'booking_reference', 'status', 'created_at', 'updated_at')
+
+    def resolve_user(self, info):
+        try:
+            from bson import ObjectId
+            return User.objects.get(id=ObjectId(str(self.user_id)))
+        except Exception:
+            try:
+                return User.objects.get(id=self.user_id)
+            except Exception:
+                return None
 
 
 # Ticket and Booking Mutations
@@ -771,27 +794,32 @@ class BookTicketsMutation(graphene.Mutation):
     booking = graphene.Field(BookingType)
     download_link = graphene.String()
 
+    razorpay_order_id = graphene.String()
+    amount = graphene.Int()
+    currency = graphene.String()
+    razorpay_key_id = graphene.String()
+
     def mutate(self, info, event_id, quantity):
         try:
             user = get_user_from_request(info)
         except Exception as e:
-            return BookTicketsMutation(success=False, message=f'Authentication error: {str(e)}', booking=None, download_link=None)
+            return BookTicketsMutation(success=False, message=f'Authentication error: {str(e)}', booking=None)
         
         try:
             event = Event.objects.get(id=event_id)
         except Event.DoesNotExist:
-            return BookTicketsMutation(success=False, message='Event not found.', booking=None, download_link=None)
+            return BookTicketsMutation(success=False, message='Event not found.', booking=None)
         
         try:
             ticket = Ticket.objects.get(event=event)
         except Ticket.DoesNotExist:
-            return BookTicketsMutation(success=False, message='Ticket information not available for this event.', booking=None, download_link=None)
+            return BookTicketsMutation(success=False, message='Ticket information not available for this event.', booking=None)
         
         if quantity <= 0:
-            return BookTicketsMutation(success=False, message='Quantity must be greater than 0.', booking=None, download_link=None)
+            return BookTicketsMutation(success=False, message='Quantity must be greater than 0.', booking=None)
         
         if ticket.available_quantity < quantity:
-            return BookTicketsMutation(success=False, message=f'Only {ticket.available_quantity} tickets available.', booking=None, download_link=None)
+            return BookTicketsMutation(success=False, message=f'Only {ticket.available_quantity} tickets available.', booking=None)
         
         total_price = ticket.price * quantity
         booking_reference = secrets.token_hex(5).upper()
@@ -803,13 +831,77 @@ class BookTicketsMutation(graphene.Mutation):
             quantity=quantity,
             total_price=total_price,
             booking_reference=booking_reference,
-            status='confirmed'
+            status='pending'
         )
         
-        ticket.available_quantity -= quantity
+        # Razorpay integration
+        try:
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            # Amount in paise
+            order_amount = int(total_price * 100)
+            order_currency = 'INR'
+            
+            razorpay_order = client.order.create({
+                'amount': order_amount,
+                'currency': order_currency,
+                'receipt': booking_reference,
+                'payment_capture': '1'
+            })
+            
+            booking.razorpay_order_id = razorpay_order['id']
+            booking.save()
+        except Exception as e:
+            return BookTicketsMutation(success=False, message=f'Failed to initialize payment: {str(e)}', booking=None)
+            
+        return BookTicketsMutation(
+            success=True,
+            message='Payment initialized',
+            booking=booking,
+            razorpay_order_id=booking.razorpay_order_id,
+            amount=order_amount,
+            currency=order_currency,
+            razorpay_key_id=settings.RAZORPAY_KEY_ID
+        )
+
+class VerifyPaymentMutation(graphene.Mutation):
+    class Arguments:
+        razorpay_payment_id = graphene.String(required=True)
+        razorpay_order_id = graphene.String(required=True)
+        razorpay_signature = graphene.String(required=True)
+        booking_reference = graphene.String(required=True)
+
+    success = graphene.Boolean()
+    message = graphene.String()
+    download_link = graphene.String()
+
+    def mutate(self, info, razorpay_payment_id, razorpay_order_id, razorpay_signature, booking_reference):
+        try:
+            booking = Booking.objects.get(booking_reference=booking_reference)
+        except Booking.DoesNotExist:
+            return VerifyPaymentMutation(success=False, message="Booking not found.")
+
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        
+        try:
+            client.utility.verify_payment_signature({
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': razorpay_payment_id,
+                'razorpay_signature': razorpay_signature
+            })
+        except razorpay.errors.SignatureVerificationError:
+            return VerifyPaymentMutation(success=False, message="Payment verification failed.")
+
+        booking.status = 'confirmed'
+        booking.razorpay_payment_id = razorpay_payment_id
+        booking.razorpay_signature = razorpay_signature
+        booking.save()
+        
+        ticket = booking.ticket
+        ticket.available_quantity -= booking.quantity
         ticket.save()
         
-        # Send booking confirmation email asynchronously to prevent timeout
+        _bust_event_cache()
+
         try:
             import threading
             
@@ -820,7 +912,6 @@ class BookTicketsMutation(graphene.Mutation):
                     import os
                     from django.conf import settings
                     
-                    # Generate and save invoice
                     invoice_filename = f"invoice_{reference}.pdf"
                     invoice_dir = os.path.join(settings.MEDIA_ROOT, 'invoices')
                     invoice_path = os.path.join(invoice_dir, invoice_filename)
@@ -843,13 +934,12 @@ class BookTicketsMutation(graphene.Mutation):
             import logging
             logger = logging.getLogger(__name__)
             logger.error(f"Error initiating booking email thread: {str(e)}")
-        
+
         download_link = f"/invoice/{booking_reference}/download/"
         
-        return BookTicketsMutation(
-            success=True,
-            message='Ticket booked successfully!',
-            booking=booking,
+        return VerifyPaymentMutation(
+            success=True, 
+            message="Payment successful and booking confirmed!",
             download_link=download_link
         )
 
@@ -941,6 +1031,7 @@ class Mutation(graphene.ObjectType):
     delete_event = DeleteEventMutation.Field()
     # booking
     book_tickets = BookTicketsMutation.Field()
+    verify_payment = VerifyPaymentMutation.Field()
     # ticket
     create_or_update_ticket = CreateOrUpdateTicketMutation.Field()
 
@@ -999,6 +1090,7 @@ class Query(graphene.ObjectType):
     paginated_events        = graphene.Field(PaginatedEventResult, page=graphene.Int(), page_size=graphene.Int(), search=graphene.String(), category_id=graphene.ID(), tag_id=graphene.ID(), status=graphene.String())
     paginated_active_events = graphene.Field(PaginatedEventResult, page=graphene.Int(), page_size=graphene.Int(), search=graphene.String())
     all_bookings            = graphene.Field(PaginatedBookingResult, page=graphene.Int(), page_size=graphene.Int(), search=graphene.String(), status=graphene.String())
+    trending_events         = graphene.List(EventType)
 
     # resolvers
 
@@ -1230,6 +1322,16 @@ class Query(graphene.ObjectType):
         cache.set(key, result, CACHE_TTL)
         return result
 
+    def resolve_trending_events(self, info):
+        key = _event_cache_key('trending_events')
+        cached = cache.get(key)
+        if cached is not None:
+            return cached
+        qs = Event.objects.filter(is_active=True, bookings__isnull=False).distinct().order_by('-views_count')[:10]
+        result = list(qs)
+        cache.set(key, result, CACHE_TTL)
+        return result
+
     def resolve_paginated_events(self, info, page=1, page_size=10, search=None, category_id=None, tag_id=None, status=None):
         admin_required(info)
         key = _event_cache_key('paginated_events', page=page, page_size=page_size,
@@ -1268,8 +1370,8 @@ class Query(graphene.ObjectType):
     def resolve_all_bookings(self, info, page=1, page_size=10, search=None, status=None):
         try:
             admin_required(info)
-        except Exception:
-            return PaginatedBookingResult(results=[], total_count=0, num_pages=0, current_page=0)
+        except Exception as e:
+            raise Exception(str(e))
         
         bookings = Booking.objects.all().order_by('-created_at')
         
@@ -1290,11 +1392,11 @@ class Query(graphene.ObjectType):
         paginator = Paginator(bookings, page_size)
         try:
             page_obj = paginator.page(page)
-        except:
-            return PaginatedBookingResult(results=[], total_count=0, num_pages=0, current_page=0)
+        except Exception:
+            return PaginatedBookingResult(results=[], total_count=0, num_pages=0, current_page=1)
         
         return PaginatedBookingResult(
-            results=page_obj.object_list,
+            results=list(page_obj.object_list),
             total_count=paginator.count,
             num_pages=paginator.num_pages,
             current_page=page

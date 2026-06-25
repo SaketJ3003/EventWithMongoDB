@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tickets — EventHub Admin</title>
@@ -35,6 +35,12 @@
     <header class="admin-topbar">
       <button class="topbar-toggle" onclick="toggleSidebar()"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <span class="topbar-title">Ticket Management</span>
+      <button class="topbar-theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle dark/light mode" aria-label="Toggle theme">
+        <span class="tt-icon tt-moon">🌙</span>
+        <div class="tt-track"><div class="tt-thumb"></div></div>
+        <span class="tt-icon tt-sun">☀️</span>
+        <span class="tt-label" id="themeLabel">Dark</span>
+      </button>
     </header>
     <div class="admin-content">
       <div id="alertSuccess" class="admin-alert admin-alert-success">✓ <span id="alertSuccessText"></span></div>
@@ -60,6 +66,20 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Notification / Confirm Modal -->
+<div id="notifModalOverlay" class="modal-overlay">
+  <div id="notifModalBox" class="modal" style="max-width:420px; padding: 32px 28px 24px; display: flex; flex-direction: column; gap: 16px;">
+    <div id="notifModalIcon" style="font-size: 2.4rem; text-align: center; line-height: 1;"></div>
+    <h3 id="notifModalTitle" style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text); text-align: center; margin: 0;"></h3>
+    <p id="notifModalMessage" style="font-size: 0.9rem; color: var(--text-2); text-align: center; line-height: 1.55; white-space: pre-wrap; word-break: break-word;"></p>
+    <div id="notifModalActions" style="display: flex; gap: 10px; margin-top: 4px;">
+      <button id="notifModalCancel" class="btn btn-ghost" style="display:none; flex:1;" onclick="_notifResolve(false)">Cancel</button>
+      <button id="notifModalOk" class="btn btn-danger" style="flex:1;" onclick="_notifResolve(true)">OK</button>
     </div>
   </div>
 </div>
@@ -93,13 +113,52 @@
 </div>
 
 <script>
+  /* ---- Theme Toggle ---- */
+  (function(){
+    const saved=localStorage.getItem('adminTheme')||'dark';
+    document.documentElement.setAttribute('data-theme',saved);
+  })();
+  function toggleTheme(){
+    const html=document.documentElement;
+    const next=html.getAttribute('data-theme')==='dark'?'light':'dark';
+    html.setAttribute('data-theme',next);
+    localStorage.setItem('adminTheme',next);
+    const lbl=document.getElementById('themeLabel');
+    if(lbl)lbl.textContent=next==='dark'?'Dark':'Light';
+  }
+  function applyThemeLabel(){
+    const lbl=document.getElementById('themeLabel');
+    if(lbl)lbl.textContent=document.documentElement.getAttribute('data-theme')==='dark'?'Dark':'Light';
+  }
+  document.addEventListener('DOMContentLoaded',applyThemeLabel);
+
   let allEvents=[],currentPage=1,totalPages=1,totalCount=0;
   const PAGE_SIZE=15;let debounce;
   function gql(q,v={},t=null){const h={'Content-Type':'application/json'};if(t)h['Authorization']=`JWT ${t}`;return fetch('/graphql/',{method:'POST',headers:h,body:JSON.stringify({query:q,variables:v})}).then(r=>r.json());}
   function tok(){return localStorage.getItem('access_token');}
   function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
   function logout(){localStorage.removeItem('access_token');localStorage.removeItem('refresh_token');window.location.href='/events/';}
-  async function checkAdmin(){if(!tok()){window.location.href='/login/';return false;}const d=await gql('{ me { isStaff isSuperuser } }',{},tok());const u=d.data?.me;if(!u||(!u.isStaff&&!u.isSuperuser)){alert('Access denied');window.location.href='/events/';return false;}return true;}
+
+  /* ── Notification Modal ── */
+  let _notifResolve=null;
+  function _notifOpen(icon,title,msg,type,showCancel){
+    return new Promise(resolve=>{
+      _notifResolve=v=>{document.getElementById('notifModalOverlay').classList.remove('open');resolve(v);};
+      const o=document.getElementById('notifModalOverlay');
+      o.setAttribute('data-type',type);
+      document.getElementById('notifModalIcon').textContent=icon;
+      document.getElementById('notifModalTitle').textContent=title;
+      document.getElementById('notifModalMessage').textContent=msg;
+      document.getElementById('notifModalCancel').style.display=showCancel?'':'none';
+      document.getElementById('notifModalOk').textContent=showCancel?'Delete':'OK';
+      o.classList.add('open');
+    });
+  }
+  function showNotif(msg,type='info'){const i={success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};const t={success:'Success',error:'Error',warning:'Warning',info:'Notice'};return _notifOpen(i[type]||'ℹ️',t[type]||'Notice',msg,type,false);}
+  function showConfirm(msg,title='Are you sure?',icon='🗑'){return _notifOpen(icon,title,msg,'confirm',true);}
+  document.getElementById('notifModalOverlay').addEventListener('click',function(e){if(e.target===this&&_notifResolve)_notifResolve(false);});
+
+  async function checkAdmin(){if(!tok()){window.location.href='/login/';return false;}const d=await gql('{ me { isStaff isSuperuser } }',{},tok());const u=d.data?.me;if(!u||(!u.isStaff&&!u.isSuperuser)){await showNotif('Access denied. You do not have permission to view this page.','error');window.location.href='/events/';return false;}return true;}
 
   async function loadEvents(page=1){
     currentPage=page;
