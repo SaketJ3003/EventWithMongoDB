@@ -226,3 +226,7 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@eventmanageme
 
 # Site URL for invoice links
 SITE_URL = config('SITE_URL', default='http://localhost:8000')
+
+# Razorpay Configuration
+RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID', default='rzp_test_T4MaH9VieY9pL6')
+RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET', default='Q35N3GebP1yeg0680ZbGwpgD')

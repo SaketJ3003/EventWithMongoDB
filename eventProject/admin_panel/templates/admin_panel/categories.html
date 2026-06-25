@@ -65,6 +65,20 @@
   </div>
 </div>
 
+
+<!-- Notification / Confirm Modal -->
+<div id="notifModalOverlay" class="modal-overlay">
+  <div id="notifModalBox" class="modal" style="max-width:420px; padding: 32px 28px 24px; display: flex; flex-direction: column; gap: 16px;">
+    <div id="notifModalIcon" style="font-size: 2.4rem; text-align: center; line-height: 1;"></div>
+    <h3 id="notifModalTitle" style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text); text-align: center; margin: 0;"></h3>
+    <p id="notifModalMessage" style="font-size: 0.9rem; color: var(--text-2); text-align: center; line-height: 1.55; white-space: pre-wrap; word-break: break-word;"></p>
+    <div id="notifModalActions" style="display: flex; gap: 10px; margin-top: 4px;">
+      <button id="notifModalCancel" class="btn btn-ghost" style="display:none; flex:1;" onclick="_notifResolve(false)">Cancel</button>
+      <button id="notifModalOk" class="btn btn-danger" style="flex:1;" onclick="_notifResolve(true)">OK</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal -->
 <div id="categoryModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
   <div class="modal" style="max-width:440px" onclick="event.stopPropagation()">
@@ -98,7 +112,27 @@
   function tok(){return localStorage.getItem('access_token');}
   function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
   function logout(){localStorage.removeItem('access_token');localStorage.removeItem('refresh_token');window.location.href='/events/';}
-  async function checkAdmin(){if(!tok()){window.location.href='/login/';return false;}const d=await gql('{ me { isStaff isSuperuser } }',{},tok());const u=d.data?.me;if(!u||(!u.isStaff&&!u.isSuperuser)){alert('Access denied');window.location.href='/events/';return false;}return true;}
+
+  /* ── Notification Modal ── */
+  let _notifResolve=null;
+  function _notifOpen(icon,title,msg,type,showCancel){
+    return new Promise(resolve=>{
+      _notifResolve=v=>{document.getElementById('notifModalOverlay').classList.remove('open');resolve(v);};
+      const o=document.getElementById('notifModalOverlay');
+      o.setAttribute('data-type',type);
+      document.getElementById('notifModalIcon').textContent=icon;
+      document.getElementById('notifModalTitle').textContent=title;
+      document.getElementById('notifModalMessage').textContent=msg;
+      document.getElementById('notifModalCancel').style.display=showCancel?'':'none';
+      document.getElementById('notifModalOk').textContent=showCancel?'Delete':'OK';
+      o.classList.add('open');
+    });
+  }
+  function showNotif(msg,type='info'){const i={success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};const t={success:'Success',error:'Error',warning:'Warning',info:'Notice'};return _notifOpen(i[type]||'ℹ️',t[type]||'Notice',msg,type,false);}
+  function showConfirm(msg,title='Are you sure?',icon='🗑'){return _notifOpen(icon,title,msg,'confirm',true);}
+  document.getElementById('notifModalOverlay').addEventListener('click',function(e){if(e.target===this&&_notifResolve)_notifResolve(false);});
+
+  async function checkAdmin(){if(!tok()){window.location.href='/login/';return false;}const d=await gql('{ me { isStaff isSuperuser } }',{},tok());const u=d.data?.me;if(!u||(!u.isStaff&&!u.isSuperuser)){await showNotif('Access denied. You do not have permission to view this page.','error');window.location.href='/events/';return false;}return true;}
 
   async function loadCategories(page=1){
     currentPage=page;
@@ -175,7 +209,8 @@
   }
 
   async function deleteCategory(id){
-    if(!confirm('Delete this category?'))return;
+    const ok=await showConfirm('This category will be permanently deleted.','Delete Category?','🗑');
+    if(!ok)return;
     const d=await gql(`mutation{deleteCategory(id:"${id}"){success message}}`,{},tok());
     if(d.data?.deleteCategory?.success){showOk('Deleted');loadCategories(currentPage);}
     else showErr(d.data?.deleteCategory?.message||'Failed');

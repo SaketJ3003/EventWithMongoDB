@@ -1,11 +1,12 @@
 from django.urls import path
-from .views import FeatureImageUploadView, ExtraImagesUploadView, login_page, signup_page, event_list_page, event_detail_page, DownloadInvoiceView
+from .views import FeatureImageUploadView, ExtraImagesUploadView, login_page, signup_page, event_list_page, event_detail_page, DownloadInvoiceView, my_bookings_page
 
 urlpatterns = [
     path('login/',  login_page,  name='login'),
     path('signup/', signup_page, name='signup'),
     path('events/', event_list_page,   name='event-list'),
     path('events/<slug:slug>/', event_detail_page, name='event-detail'),
+    path('my-bookings/', my_bookings_page, name='my-bookings'),
     path('events/<str:event_id>/feature-image/', FeatureImageUploadView.as_view(), name='event-feature-image'),
     path('events/<str:event_id>/extra-images/', ExtraImagesUploadView.as_view(), name='event-extra-images'),
     path('invoice/<str:booking_reference>/download/', DownloadInvoiceView.as_view(), name='download-invoice'),

@@ -6,22 +6,45 @@
   <title>Sign Up — EventHub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="/static/css/style.css" rel="stylesheet">
+  <script>(function(){var t=localStorage.getItem('eh-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
 </head>
 <body>
-<nav class="nav">
-  <div class="container nav-inner">
-    <a href="/events/" class="nav-logo">EventHub</a>
-    <div class="nav-links">
-      <a href="/login/" class="nav-link">Already have an account? Login</a>
-    </div>
-  </div>
+
+<!-- Animated Background -->
+<div class="page-bg">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+<canvas id="particleCanvas"></canvas>
+
+<!-- Floating Dock -->
+<nav class="dock">
+  <span class="dock-logo">EventHub</span>
+  <div class="dock-sep"></div>
+  <a href="/events/" class="dock-item">
+    <span class="dock-icon">🎪</span>
+    <span>Events</span>
+  </a>
+  <div class="dock-sep"></div>
+  <a href="/login/" class="dock-item">
+    <span class="dock-icon">🔑</span>
+    <span>Login</span>
+  </a>
+  <a href="/signup/" class="dock-item-primary active">✨ Sign Up</a>
+  <div class="dock-sep"></div>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle theme">
+    <span class="theme-toggle-icon theme-toggle-moon">🌙</span>
+    <div class="theme-toggle-track"><div class="theme-toggle-thumb"></div></div>
+    <span class="theme-toggle-icon theme-toggle-sun">☀️</span>
+  </button>
 </nav>
 
 <div class="auth-page">
   <div class="auth-card">
-    <div style="width:48px;height:48px;background:var(--grad-hero);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:24px">✨</div>
+    <div style="width:56px;height:56px;background:var(--grad-hero);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin-bottom:28px;box-shadow:0 8px 24px var(--accent-glow)">✨</div>
     <h1 class="auth-title">Create account</h1>
     <p class="auth-sub">Join EventHub and start discovering live experiences</p>
 
@@ -68,49 +91,95 @@
 </div>
 
 <script>
-  document.getElementById('signupForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const btn = document.getElementById('submitBtn');
-    const errEl = document.getElementById('alertError'), sucEl = document.getElementById('alertSuccess');
-    errEl.style.display='none'; sucEl.style.display='none';
-    btn.disabled=true; btn.textContent='Creating Account…';
+/* ---- Theme Toggle ---- */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') !== 'light';
+  const next = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('eh-theme', next);
+}
 
-    const username   = document.getElementById('username').value.trim();
-    const first_name = document.getElementById('first_name').value.trim();
-    const last_name  = document.getElementById('last_name').value.trim();
-    const email      = document.getElementById('email').value.trim();
-    const password   = document.getElementById('password').value;
-
-    try {
-      const res = await fetch('/graphql/', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ query:`
-          mutation Signup($username:String!,$email:String!,$password:String!,$firstName:String,$lastName:String){
-            signup(username:$username,email:$email,password:$password,firstName:$firstName,lastName:$lastName){
-              success message
-            }
-          }`, variables:{username, email, password, firstName:first_name, lastName:last_name}
-        })
-      });
-      const d = await res.json();
-      if(d.errors){ showErr(d.errors[0].message); return; }
-      const r = d.data.signup;
-      if(r.success){
-        document.getElementById('alertSuccessText').textContent = 'Account created! Redirecting to login…';
-        sucEl.style.display='flex';
-        document.getElementById('signupForm').reset();
-        setTimeout(()=>window.location.href='/login/', 1200);
-      } else {
-        showErr(r.message||'Registration failed. Please try again.');
-      }
-    } catch(err){ showErr('Network error. Please try again.'); }
-    finally{ btn.disabled=false; btn.textContent='Create Account'; }
-
-    function showErr(msg){
-      document.getElementById('alertErrorText').textContent=msg;
-      errEl.style.display='flex';
+/* ---- Particle System ---- */
+(function() {
+  const canvas = document.getElementById('particleCanvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  let W, H;
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  class Particle {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = Math.random() * W; this.y = Math.random() * H;
+      this.size = Math.random() * 1.5 + 0.3;
+      this.speedX = (Math.random() - 0.5) * 0.3; this.speedY = (Math.random() - 0.5) * 0.3;
+      this.opacity = Math.random() * 0.5 + 0.1;
+      const colors = ['124,58,237','236,72,153','6,182,212','167,139,250'];
+      this.color = colors[Math.floor(Math.random() * colors.length)];
     }
-  });
+    update() {
+      this.x += this.speedX; this.y += this.speedY;
+      if (this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+    }
+    draw() {
+      ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${this.color},${this.opacity})`; ctx.fill();
+    }
+  }
+  for (let i = 0; i < 60; i++) particles.push(new Particle());
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+document.getElementById('signupForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const errEl = document.getElementById('alertError'), sucEl = document.getElementById('alertSuccess');
+  errEl.style.display='none'; sucEl.style.display='none';
+  btn.disabled=true; btn.textContent='Creating Account…';
+
+  const username   = document.getElementById('username').value.trim();
+  const first_name = document.getElementById('first_name').value.trim();
+  const last_name  = document.getElementById('last_name').value.trim();
+  const email      = document.getElementById('email').value.trim();
+  const password   = document.getElementById('password').value;
+
+  try {
+    const res = await fetch('/graphql/', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ query:`
+        mutation Signup($username:String!,$email:String!,$password:String!,$firstName:String,$lastName:String){
+          signup(username:$username,email:$email,password:$password,firstName:$firstName,lastName:$lastName){
+            success message
+          }
+        }`, variables:{username, email, password, firstName:first_name, lastName:last_name}
+      })
+    });
+    const d = await res.json();
+    if(d.errors){ showErr(d.errors[0].message); return; }
+    const r = d.data.signup;
+    if(r.success){
+      document.getElementById('alertSuccessText').textContent = 'Account created! Redirecting to login…';
+      sucEl.style.display='flex';
+      document.getElementById('signupForm').reset();
+      setTimeout(()=>window.location.href='/login/', 1200);
+    } else {
+      showErr(r.message||'Registration failed. Please try again.');
+    }
+  } catch(err){ showErr('Network error. Please try again.'); }
+  finally{ btn.disabled=false; btn.textContent='Create Account'; }
+
+  function showErr(msg){
+    document.getElementById('alertErrorText').textContent=msg;
+    errEl.style.display='flex';
+  }
+});
 </script>
 </body>
 </html>
