@@ -20,9 +20,19 @@ from django.conf import settings
 from django.conf.urls.static import static
 from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+
+def api_root(request):
+    return JsonResponse({
+        "GraphQL Endpoint (GraphiQL Explorer)": request.build_absolute_uri("/graphql/"),
+        "Upload Feature Image": request.build_absolute_uri("/events/<event_id>/feature-image/"),
+        "Upload Extra Images": request.build_absolute_uri("/events/<event_id>/extra-images/"),
+        "Download Invoice": request.build_absolute_uri("/invoice/<booking_reference>/download/"),
+    })
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', api_root, name='api-root'),
     path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True))),
     path('', include('event.urls')),
     path('admin-panel/', include('admin_panel.urls'))

@@ -33,7 +33,7 @@
     <span class="dock-icon">🎟</span>
     <span>Bookings</span>
   </a>
-  <a href="/admin-panel/dashboard/" class="dock-item dock-item-admin" id="adminDashboardBtn" style="display:none">
+  <a href="/admin-panel/dashboard/" class="dock-item" id="adminDashboardBtn" style="display:none">
     <span class="dock-icon">⚡</span>
     <span>Admin</span>
   </a>
@@ -42,8 +42,11 @@
     <span class="dock-icon">🔑</span>
     <span>Login</span>
   </a>
-  <a href="/signup/" class="dock-item-primary" id="signupLink">✨ Sign Up</a>
-  <button onclick="logout()" class="dock-item dock-item-danger" id="logoutBtn" style="display:none">
+  <a href="/signup/" class="dock-item" id="signupLink">
+    <span class="dock-icon">✨</span>
+    <span>Sign Up</span>
+  </a>
+  <button onclick="logout()" class="dock-item" id="logoutBtn" style="display:none">
     <span class="dock-icon">👋</span>
     <span>Sign Out</span>
   </button>
@@ -103,7 +106,10 @@
       <div class="modal-summary-row"><span>Total Amount</span><strong id="totalPrice">—</strong></div>
     </div>
 
-    <button type="button" class="btn btn-primary btn-wide" id="confirmBtn" onclick="confirmBooking()">Confirm Booking</button>
+    <div style="display: flex; gap: 10px; margin-top: 10px;">
+      <button type="button" class="btn btn-primary" id="confirmBtn" onclick="confirmBooking()" style="flex: 1;">Confirm Booking</button>
+      <button type="button" class="btn btn-primary" id="testBypassBtn" onclick="testBypassBooking()" style="flex: 1; background-color: #28a745; border-color: #28a745;">Test Success</button>
+    </div>
     <button type="button" class="btn btn-ghost btn-wide" style="margin-top:10px" onclick="closeModal()">Cancel</button>
   </div>
 </div>
@@ -497,6 +503,58 @@ async function confirmBooking() {
   } catch(err) { 
       showNotif('Error: ' + err.message, 'error'); 
       btn.disabled = false; btn.textContent = 'Confirm Booking';
+  }
+}
+
+async function testBypassBooking() {
+  const eventId  = document.getElementById('modalEventId').value;
+  const quantity = parseInt(document.getElementById('quantityInput').textContent);
+  const token    = localStorage.getItem('access_token');
+  const btn      = document.getElementById('testBypassBtn');
+  btn.disabled   = true; btn.textContent = 'Processing...';
+  try {
+    const d = await gql(`
+      mutation($eventId:String!,$quantity:Int!){bookTickets(eventId:$eventId,quantity:$quantity){
+        success message booking{bookingReference totalPrice} razorpayOrderId amount currency razorpayKeyId
+      }}
+    `, {eventId, quantity}, token);
+    const r = d.data?.bookTickets;
+    if (r?.success) {
+      const verifyRes = await gql(`
+          mutation($paymentId:String!, $orderId:String!, $signature:String!, $ref:String!){
+              verifyPayment(razorpayPaymentId:$paymentId, razorpayOrderId:$orderId, razorpaySignature:$signature, bookingReference:$ref){
+                  success message downloadLink
+              }
+          }
+      `, {
+          paymentId: 'test_success',
+          orderId: r.razorpayOrderId,
+          signature: 'test_signature',
+          ref: r.booking.bookingReference
+      }, token);
+      
+      const v = verifyRes.data?.verifyPayment;
+      if (v?.success) {
+          closeModal();
+          await showNotif(`Test Payment Successful!\nRef: ${r.booking.bookingReference}\nTotal: ₹${r.booking.totalPrice}\n\nYour PDF invoice has been generated and the confirmation email has been sent!`, 'success');
+          
+          if (v.downloadLink) {
+              window.open(v.downloadLink, '_blank');
+          }
+          
+          const slug = window.location.pathname.split('/').filter(Boolean).pop();
+          const ev   = await gql('query($slug:String!){eventBySlug(slug:$slug){id}}', {slug}, token);
+          if (ev.data?.eventBySlug) loadTicket(ev.data.eventBySlug.id);
+      } else {
+          showNotif('Payment verification failed: ' + (v?.message || ''), 'error');
+      }
+    } else {
+      showNotif('Error: ' + (r?.message||'Booking failed'), 'error');
+    }
+  } catch(err) { 
+      showNotif('Error: ' + err.message, 'error'); 
+  } finally {
+      btn.disabled = false; btn.textContent = 'Test Success';
   }
 }
 

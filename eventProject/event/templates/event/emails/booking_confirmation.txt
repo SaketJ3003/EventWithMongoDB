@@ -20,12 +20,8 @@ Total Amount: ₹{{ total_price }}
 
 WHAT'S NEXT?
 - Your invoice has been attached to this email
-- You can download your invoice anytime using your booking reference
 - Please keep your booking reference safe for check-in at the event
 - You'll receive a reminder email 24 hours before the event
-
-DOWNLOAD INVOICE
-{{ download_link }}
 
 If you have any questions, please contact our support team.
 

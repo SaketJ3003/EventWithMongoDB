@@ -12,6 +12,30 @@
   <script>/* Apply theme before paint to avoid flash */
     (function(){var t=localStorage.getItem('eh-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
   </script>
+  <style>
+    /* Responsive Trending Carousel */
+    .trending-card {
+      min-width: 300px;
+      max-width: 300px;
+      flex-shrink: 0;
+      scroll-snap-align: start;
+    }
+    @media (max-width: 768px) {
+      .trending-card {
+        min-width: 75vw;
+        max-width: 75vw;
+      }
+      #trendingContainer {
+        gap: 16px !important;
+      }
+    }
+    @media (max-width: 480px) {
+      .trending-card {
+        min-width: 85vw;
+        max-width: 85vw;
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -35,7 +59,7 @@
     <span class="dock-icon">🎟</span>
     <span>Bookings</span>
   </a>
-  <a href="/admin-panel/dashboard/" class="dock-item dock-item-admin" id="adminDashboardBtn" style="display:none">
+  <a href="/admin-panel/dashboard/" class="dock-item" id="adminDashboardBtn" style="display:none">
     <span class="dock-icon">⚡</span>
     <span>Admin</span>
   </a>
@@ -44,8 +68,11 @@
     <span class="dock-icon">🔑</span>
     <span>Login</span>
   </a>
-  <a href="/signup/" class="dock-item-primary" id="signupLink">✨ Sign Up</a>
-  <button onclick="logout()" class="dock-item dock-item-danger" id="logoutBtn" style="display:none">
+  <a href="/signup/" class="dock-item" id="signupLink">
+    <span class="dock-icon">✨</span>
+    <span>Sign Up</span>
+  </a>
+  <button onclick="logout()" class="dock-item" id="logoutBtn" style="display:none">
     <span class="dock-icon">👋</span>
     <span>Sign Out</span>
   </button>
@@ -79,7 +106,7 @@
         <div class="section-heading-label">Hot Right Now</div>
         <h2>🔥 Trending Events</h2>
       </div>
-      <div id="trendingContainer" class="hide-scrollbar" style="display: flex; gap: 24px; overflow-x: auto; padding-bottom: 16px; scroll-snap-type: x mandatory; margin: 0 -16px; padding-left: 16px; padding-right: 16px;">
+      <div id="trendingContainer" class="hide-scrollbar" style="display: flex; gap: 24px; overflow-x: auto; overflow-y: hidden; padding-bottom: 16px; scroll-snap-type: x mandatory; margin: 0 -16px; padding-left: 16px; padding-right: 16px;">
         <!-- Trending cards go here -->
       </div>
     </div>
@@ -269,7 +296,7 @@ function eventCard(e, index, isTrending = false) {
   const badge = isTrending ? `<div class="card-badge" style="position:absolute; top:12px; left:12px; background:linear-gradient(135deg, #ff3b30, #ff2d55); color:#fff; padding:6px 12px; border-radius:20px; font-size:0.75rem; font-weight:700; z-index:2; box-shadow: 0 4px 12px rgba(255,59,48,0.3); text-transform:uppercase; letter-spacing:0.5px;">Trending</div>` : '';
   
   return `
-    <a href="/events/${e.slug}/" class="card reveal" style="text-decoration:none;transition-delay:${index * 60}ms; ${isTrending ? 'min-width: 300px; max-width: 300px; flex-shrink: 0; scroll-snap-align: start;' : ''}">
+    <a href="/events/${e.slug}/" class="card reveal ${isTrending ? 'trending-card' : ''}" style="text-decoration:none;transition-delay:${index * 60}ms;">
       <div class="card-image-wrap">
         ${badge}
         ${img}
@@ -399,11 +426,62 @@ async function loadTrendingEvents() {
     
     const trending = d.data.trendingEvents;
     const container = document.getElementById('trendingContainer');
-    container.innerHTML = trending.map((e, i) => eventCard(e, i, true)).join('');
+    
+    // Render twice for infinite loop effect
+    const cardsHTML = trending.map((e, i) => eventCard(e, i, true)).join('');
+    container.innerHTML = cardsHTML + cardsHTML;
+
     document.getElementById('trendingSectionWrap').style.display = 'block';
     
     // Trigger reveals for trending cards
     container.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Auto-rotate trending carousel
+    let animationFrameId;
+    let isHovered = false;
+
+    const startAutoRotate = () => {
+      if (isHovered) return;
+      container.style.scrollSnapType = 'none'; // Disable snapping for smooth continuous scroll
+      const step = () => {
+        if (isHovered) return;
+
+        // Calculate the exact pixel width of one full set of items
+        const firstItem = container.children[0];
+        const cloneItem = container.children[trending.length];
+        
+        if (firstItem && cloneItem) {
+          const jumpDistance = cloneItem.offsetLeft - firstItem.offsetLeft;
+          
+          if (container.scrollLeft >= jumpDistance) {
+            // Seamlessly reset back to start
+            container.scrollLeft = container.scrollLeft - jumpDistance;
+          } else {
+            container.scrollLeft += 1.5; 
+          }
+        }
+        
+        animationFrameId = requestAnimationFrame(step);
+      };
+      animationFrameId = requestAnimationFrame(step);
+    };
+
+    const stopAutoRotate = () => {
+      isHovered = true;
+      cancelAnimationFrame(animationFrameId);
+      container.style.scrollSnapType = 'x mandatory'; // Re-enable snapping for manual scroll
+    };
+
+    const resumeAutoRotate = () => {
+      isHovered = false;
+      startAutoRotate();
+    };
+
+    startAutoRotate();
+    container.addEventListener('mouseenter', stopAutoRotate);
+    container.addEventListener('mouseleave', resumeAutoRotate);
+    container.addEventListener('touchstart', stopAutoRotate, {passive: true});
+    container.addEventListener('touchend', resumeAutoRotate, {passive: true});
   } catch(err) {
     document.getElementById('trendingSectionWrap').style.display = 'none';
   }

@@ -882,14 +882,17 @@ class VerifyPaymentMutation(graphene.Mutation):
 
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
         
-        try:
-            client.utility.verify_payment_signature({
-                'razorpay_order_id': razorpay_order_id,
-                'razorpay_payment_id': razorpay_payment_id,
-                'razorpay_signature': razorpay_signature
-            })
-        except razorpay.errors.SignatureVerificationError:
-            return VerifyPaymentMutation(success=False, message="Payment verification failed.")
+        if razorpay_payment_id == "test_success" and settings.DEBUG:
+            pass # Bypass verification for local testing
+        else:
+            try:
+                client.utility.verify_payment_signature({
+                    'razorpay_order_id': razorpay_order_id,
+                    'razorpay_payment_id': razorpay_payment_id,
+                    'razorpay_signature': razorpay_signature
+                })
+            except razorpay.errors.SignatureVerificationError:
+                return VerifyPaymentMutation(success=False, message="Payment verification failed.")
 
         booking.status = 'confirmed'
         booking.razorpay_payment_id = razorpay_payment_id
